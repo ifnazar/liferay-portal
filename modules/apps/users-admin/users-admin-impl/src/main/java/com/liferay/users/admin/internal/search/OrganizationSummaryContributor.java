@@ -28,7 +28,7 @@ import org.osgi.service.component.annotations.Component;
  */
 @Component(
 	immediate = true,
-	property = "model.class.name=com.liferay.portal.kernel.model.Organization",
+	property = "indexer.class.name=com.liferay.portal.kernel.model.Organization",
 	service = ModelSummaryContributor.class
 )
 public class OrganizationSummaryContributor implements ModelSummaryContributor {
