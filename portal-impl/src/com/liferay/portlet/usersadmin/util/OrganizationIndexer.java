@@ -58,6 +58,7 @@ import javax.portlet.PortletResponse;
  * @author Zsigmond Rab
  * @author Hugo Huijser
  * @author Marco Leo
+ * @deprecated As of Judson (7.1.x), since 7.1.0
  */
 @OSGiBeanProperties
 public class OrganizationIndexer extends BaseIndexer<Organization> {
