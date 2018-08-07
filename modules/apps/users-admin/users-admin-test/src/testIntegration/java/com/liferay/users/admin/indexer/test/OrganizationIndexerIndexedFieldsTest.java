@@ -15,17 +15,27 @@
 package com.liferay.users.admin.indexer.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.expando.kernel.model.ExpandoColumn;
+import com.liferay.expando.kernel.model.ExpandoColumnConstants;
+import com.liferay.expando.kernel.model.ExpandoTable;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerTestRule;
+import com.liferay.portlet.expando.util.test.ExpandoTestUtil;
+
+import java.io.Serializable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,9 +77,15 @@ public class OrganizationIndexerIndexedFieldsTest
 		String organizationName = "新規作成";
 		String countryName = "united-states";
 		String regionName = "Alabama";
+		String expandoColumnName = "expandoColumn";
+		String expandoColumnValue = "Software Engineer";
+		
+		addExpandoColumn(
+			Organization.class, expandoColumnName,
+			ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
 
 		Organization organization = organizationFixture.createAnOrganization(
-			organizationName, countryName, regionName);
+			organizationName, countryName, regionName, expandoColumnName, expandoColumnValue);
 
 		String searchTerm = "新規";
 
@@ -81,6 +97,38 @@ public class OrganizationIndexerIndexedFieldsTest
 		Map<String, String> expected = expectedFieldValues(organization);
 
 		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
+	}
+
+	protected void addExpandoColumn(
+			Class<?> clazz, String columnName, int indexType)
+		throws Exception {
+
+		ExpandoTable expandoTable = expandoTableLocalService.fetchTable(
+			TestPropsValues.getCompanyId(),
+			classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
+
+		if (expandoTable == null) {
+			expandoTable = expandoTableLocalService.addTable(
+				TestPropsValues.getCompanyId(),
+				classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
+
+			expandoTables.add(expandoTable);
+		}
+
+		ExpandoColumn expandoColumn = ExpandoTestUtil.addColumn(
+			expandoTable, columnName, ExpandoColumnConstants.STRING);
+
+		expandoColumns.add(expandoColumn);
+
+		UnicodeProperties unicodeProperties =
+			expandoColumn.getTypeSettingsProperties();
+
+		unicodeProperties.setProperty(
+			ExpandoColumnConstants.INDEX_TYPE, String.valueOf(indexType));
+
+		expandoColumn.setTypeSettingsProperties(unicodeProperties);
+		
+		expandoColumnLocalService.updateExpandoColumn(expandoColumn);
 	}
 
 	protected Map<String, String> expectedFieldValues(Organization organization)
@@ -126,11 +174,30 @@ public class OrganizationIndexerIndexedFieldsTest
 		map.put(Field.UID, portletUID);
 		map.put(Field.TYPE, organization.getType());
 		map.put(Field.ROLE_ID, organization.getType());
+		map.put(
+			"expando__keyword__custom_fields__expandoColumn",
+			"Software Engineer");
 
 		_populateDates(organization, map);
 		_populateRoles(organization, map);
 
 		return map;
+	}
+
+	protected ServiceContext getServiceContext(
+			String columnName, String columnValue)
+		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		Map<String, Serializable> expandoBridgeAttributes = new HashMap<>();
+
+		expandoBridgeAttributes.put(columnName, columnValue);
+
+		serviceContext.setExpandoBridgeAttributes(expandoBridgeAttributes);
+
+		return serviceContext;
 	}
 
 	private void _populateDates(

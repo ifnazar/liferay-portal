@@ -34,9 +34,12 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.service.test.ServiceTestUtil;
 
 import java.io.File;
+import java.io.Serializable;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -67,7 +70,8 @@ public class OrganizationFixture {
 	}
 
 	public Organization createAnOrganization(
-			String organizationName, String countryName, String regionName)
+			String organizationName, String countryName, String regionName, 
+			String expandoColumnName, String expandoColumnValue)
 		throws Exception, PortalException {
 
 		Country country = _countryService.getCountryByName(countryName);
@@ -83,11 +87,19 @@ public class OrganizationFixture {
 		String comments = "";
 		boolean site = false;
 
+		ServiceContext serviceContext = getServiceContext();
+
+		Map<String, Serializable> expandoBridgeAttributes = new HashMap<>();
+		
+		expandoBridgeAttributes.put(expandoColumnName, expandoColumnValue);
+
+		serviceContext.setExpandoBridgeAttributes(expandoBridgeAttributes);
+
 		try {
 			Organization organization = _organizationService.addOrganization(
 				parentOrganizationId, organizationName, organizatioType,
 				regionId, countryId, statusId, comments, site,
-				getServiceContext());
+				serviceContext);
 
 			_organizatons.add(organization);
 

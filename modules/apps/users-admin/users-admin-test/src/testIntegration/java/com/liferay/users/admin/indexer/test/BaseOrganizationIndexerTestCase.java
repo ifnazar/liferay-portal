@@ -14,12 +14,17 @@
 
 package com.liferay.users.admin.indexer.test;
 
+import com.liferay.expando.kernel.model.ExpandoColumn;
+import com.liferay.expando.kernel.model.ExpandoTable;
+import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
+import com.liferay.expando.kernel.service.ExpandoTableLocalService;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CountryService;
 import com.liferay.portal.kernel.service.OrganizationService;
 import com.liferay.portal.kernel.service.RegionService;
@@ -108,7 +113,22 @@ public abstract class BaseOrganizationIndexerTestCase {
 	}
 
 	@Inject
+	protected ClassNameLocalService classNameLocalService;
+
+	@Inject
 	protected CountryService countryService;
+
+	@Inject
+	protected ExpandoColumnLocalService expandoColumnLocalService;
+
+	@DeleteAfterTestRun
+	protected final List<ExpandoColumn> expandoColumns = new ArrayList<>();
+
+	@Inject
+	protected ExpandoTableLocalService expandoTableLocalService;
+
+	@DeleteAfterTestRun
+	protected final List<ExpandoTable> expandoTables = new ArrayList<>();
 
 	protected IndexedFieldsFixture indexedFieldsFixture;
 
