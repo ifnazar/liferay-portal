@@ -61,6 +61,7 @@ import javax.portlet.PortletResponse;
  * @deprecated As of Judson (7.1.x), since 7.1.0
  */
 @OSGiBeanProperties
+@Deprecated
 public class OrganizationIndexer extends BaseIndexer<Organization> {
 
 	public static final String CLASS_NAME = Organization.class.getName();
