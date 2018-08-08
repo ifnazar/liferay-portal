@@ -84,10 +84,13 @@ public class OrganizationIndexerIndexedFieldsTest
 			Organization.class, expandoColumnName,
 			ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
 
+		Map<String, Serializable> expandoValues = new HashMap<>();
+		expandoValues.put(expandoColumnName, expandoColumnValue);
+		
 		Organization organization = organizationFixture.createAnOrganization(
-			organizationName, countryName, regionName, expandoColumnName, expandoColumnValue);
+			organizationName, countryName, regionName, expandoValues);
 
-		String searchTerm = "新規";
+		String searchTerm = "Software";
 
 		Document document = organizationSearchFixture.searchOnlyOne(
 			searchTerm, LocaleUtil.JAPAN);
@@ -99,37 +102,7 @@ public class OrganizationIndexerIndexedFieldsTest
 		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
 	}
 
-	protected void addExpandoColumn(
-			Class<?> clazz, String columnName, int indexType)
-		throws Exception {
 
-		ExpandoTable expandoTable = expandoTableLocalService.fetchTable(
-			TestPropsValues.getCompanyId(),
-			classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
-
-		if (expandoTable == null) {
-			expandoTable = expandoTableLocalService.addTable(
-				TestPropsValues.getCompanyId(),
-				classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
-
-			expandoTables.add(expandoTable);
-		}
-
-		ExpandoColumn expandoColumn = ExpandoTestUtil.addColumn(
-			expandoTable, columnName, ExpandoColumnConstants.STRING);
-
-		expandoColumns.add(expandoColumn);
-
-		UnicodeProperties unicodeProperties =
-			expandoColumn.getTypeSettingsProperties();
-
-		unicodeProperties.setProperty(
-			ExpandoColumnConstants.INDEX_TYPE, String.valueOf(indexType));
-
-		expandoColumn.setTypeSettingsProperties(unicodeProperties);
-		
-		expandoColumnLocalService.updateExpandoColumn(expandoColumn);
-	}
 
 	protected Map<String, String> expectedFieldValues(Organization organization)
 		throws Exception {
@@ -173,31 +146,15 @@ public class OrganizationIndexerIndexedFieldsTest
 		map.put(Field.TREE_PATH, organization.getTreePath());
 		map.put(Field.UID, portletUID);
 		map.put(Field.TYPE, organization.getType());
-		map.put(Field.ROLE_ID, organization.getType());
+
 		map.put(
 			"expando__keyword__custom_fields__expandoColumn",
 			"Software Engineer");
 
 		_populateDates(organization, map);
-		_populateRoles(organization, map);
+		// _populateRoles(organization, map);
 
 		return map;
-	}
-
-	protected ServiceContext getServiceContext(
-			String columnName, String columnValue)
-		throws Exception {
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext();
-
-		Map<String, Serializable> expandoBridgeAttributes = new HashMap<>();
-
-		expandoBridgeAttributes.put(columnName, columnValue);
-
-		serviceContext.setExpandoBridgeAttributes(expandoBridgeAttributes);
-
-		return serviceContext;
 	}
 
 	private void _populateDates(

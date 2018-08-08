@@ -70,8 +70,7 @@ public class OrganizationFixture {
 	}
 
 	public Organization createAnOrganization(
-			String organizationName, String countryName, String regionName, 
-			String expandoColumnName, String expandoColumnValue)
+			String organizationName, String countryName, String regionName, Map<String, Serializable> expando)
 		throws Exception, PortalException {
 
 		Country country = _countryService.getCountryByName(countryName);
@@ -89,12 +88,9 @@ public class OrganizationFixture {
 
 		ServiceContext serviceContext = getServiceContext();
 
-		Map<String, Serializable> expandoBridgeAttributes = new HashMap<>();
+		if (expando != null)
+			serviceContext.setExpandoBridgeAttributes(expando);
 		
-		expandoBridgeAttributes.put(expandoColumnName, expandoColumnValue);
-
-		serviceContext.setExpandoBridgeAttributes(expandoBridgeAttributes);
-
 		try {
 			Organization organization = _organizationService.addOrganization(
 				parentOrganizationId, organizationName, organizatioType,
