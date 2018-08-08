@@ -15,17 +15,27 @@
 package com.liferay.users.admin.indexer.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.expando.kernel.model.ExpandoColumn;
+import com.liferay.expando.kernel.model.ExpandoColumnConstants;
+import com.liferay.expando.kernel.model.ExpandoTable;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerTestRule;
+import com.liferay.portlet.expando.util.test.ExpandoTestUtil;
+
+import java.io.Serializable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,11 +77,20 @@ public class OrganizationIndexerIndexedFieldsTest
 		String organizationName = "新規作成";
 		String countryName = "united-states";
 		String regionName = "Alabama";
+		String expandoColumnName = "expandoColumn";
+		String expandoColumnValue = "Software Engineer";
+		
+		addExpandoColumn(
+			Organization.class, expandoColumnName,
+			ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
 
+		Map<String, Serializable> expandoValues = new HashMap<>();
+		expandoValues.put(expandoColumnName, expandoColumnValue);
+		
 		Organization organization = organizationFixture.createAnOrganization(
-			organizationName, countryName, regionName);
+			organizationName, countryName, regionName, expandoValues);
 
-		String searchTerm = "新規";
+		String searchTerm = "Software";
 
 		Document document = organizationSearchFixture.searchOnlyOne(
 			searchTerm, LocaleUtil.JAPAN);
@@ -82,6 +101,8 @@ public class OrganizationIndexerIndexedFieldsTest
 
 		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
 	}
+
+
 
 	protected Map<String, String> expectedFieldValues(Organization organization)
 		throws Exception {
@@ -125,10 +146,13 @@ public class OrganizationIndexerIndexedFieldsTest
 		map.put(Field.TREE_PATH, organization.getTreePath());
 		map.put(Field.UID, portletUID);
 		map.put(Field.TYPE, organization.getType());
-		map.put(Field.ROLE_ID, organization.getType());
+
+		map.put(
+			"expando__keyword__custom_fields__expandoColumn",
+			"Software Engineer");
 
 		_populateDates(organization, map);
-		_populateRoles(organization, map);
+		// _populateRoles(organization, map);
 
 		return map;
 	}
