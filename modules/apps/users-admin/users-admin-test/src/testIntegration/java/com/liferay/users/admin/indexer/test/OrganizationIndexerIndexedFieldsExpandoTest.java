@@ -1,20 +1,9 @@
-/**
- * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 2.1 of the License, or (at your option)
- * any later version.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- */
-
 package com.liferay.users.admin.indexer.test;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -24,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.search.Document;
@@ -37,13 +27,11 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerTestRule;
 
 /**
- * @author Igor Fabiano Nazar
+ * @author Lucas Marques
  * @author Luan Maoski
  */
 @RunWith(Arquillian.class)
-public class OrganizationIndexerIndexedFieldsTest
-	extends BaseOrganizationIndexerTestCase {
-
+public class OrganizationIndexerIndexedFieldsExpandoTest extends BaseOrganizationIndexerTestCase {
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
@@ -66,12 +54,29 @@ public class OrganizationIndexerIndexedFieldsTest
 
 		String organizationName = "新規作成";
 		String countryName = "united-states";
-		String regionName = "Alabama";	
-							
-		Organization organization = organizationFixture.createAnOrganization(
-			organizationName, countryName, regionName, null);
+		String regionName = "Alabama";
+		String expandoColumnObs = "expandoColumnObs";
+		String expandoColumnValue = "Software Engineer";
+		String expandoColumnName = "expandoColumnName";
+		String expandoColumnValue2 = "Software Developer";
+		
+		List<String> lstExpandoColumns  = new ArrayList<String>();
+		lstExpandoColumns.add(expandoColumnObs);
+		lstExpandoColumns.add(expandoColumnName);
+				
+		indexedFieldsFixture.addExpandoColumn(classNameLocalService, expandoColumnLocalService, 
+			expandoColumns, expandoTableLocalService, expandoTables,
+			Organization.class, lstExpandoColumns,
+			ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
 
-		String searchTerm = "新規";
+		Map<String, Serializable> expandoValues = new HashMap<>();
+		expandoValues.put(expandoColumnObs, expandoColumnValue);
+		expandoValues.put(expandoColumnName, expandoColumnValue2);
+		
+		Organization organization = organizationFixture.createAnOrganization(
+			organizationName, countryName, regionName, expandoValues);
+
+		String searchTerm = "Developer";
 
 		Document document = organizationSearchFixture.searchOnlyOne(
 			searchTerm, LocaleUtil.JAPAN);
@@ -83,13 +88,14 @@ public class OrganizationIndexerIndexedFieldsTest
 		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
 	}
 
-
-
 	protected Map<String, String> expectedFieldValues(Organization organization)
 		throws Exception {
 
 		Map<String, String> map = new HashMap<>();
-					
+
+//		String portletUID =
+//			Organization.class.getName() + "_PORTLET_" +
+//				organization.getOrganizationId();
 		String countryName = getCountryNameForAllAvailableLocales(organization);
 
 		Region region = regionService.getRegion(organization.getRegionId());
@@ -124,7 +130,14 @@ public class OrganizationIndexerIndexedFieldsTest
 		map.put(Field.TREE_PATH, organization.getTreePath());
 		indexedFieldsFixture.populateUID(Organization.class.getName(), organization.getOrganizationId(), map);
 		map.put(Field.TYPE, organization.getType());
-		
+
+		map.put(
+			"expando__keyword__custom_fields__expandoColumnObs",
+			"Software Engineer");
+		map.put(
+				"expando__keyword__custom_fields__expandoColumnName",
+				"Software Developer");
+
 		_populateDates(organization, map);
 		// _populateRoles(organization, map);
 
