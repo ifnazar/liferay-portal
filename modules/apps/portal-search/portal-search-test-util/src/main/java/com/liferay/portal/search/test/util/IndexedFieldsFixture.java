@@ -14,6 +14,11 @@
 
 package com.liferay.portal.search.test.util;
 
+import com.liferay.expando.kernel.model.ExpandoColumn;
+import com.liferay.expando.kernel.model.ExpandoColumnConstants;
+import com.liferay.expando.kernel.model.ExpandoTable;
+import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
+import com.liferay.expando.kernel.service.ExpandoTableLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
@@ -23,9 +28,16 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchEngine;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.CountryService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.test.rule.Inject;
+import com.liferay.portlet.expando.util.test.ExpandoTestUtil;
 
 import java.text.Format;
 
@@ -126,6 +138,41 @@ public class IndexedFieldsFixture {
 			map.put(field, values.toString());
 		}
 	}
+		
+	public void addExpandoColumn(ClassNameLocalService classNameLocalService, 
+			ExpandoColumnLocalService expandoColumnLocalService,  List<ExpandoColumn> expandoColumns,
+			ExpandoTableLocalService expandoTableLocalService, List<ExpandoTable> expandoTables,
+			Class<?> clazz, List<String> columns, int indexType)
+		throws Exception {
+
+		ExpandoTable expandoTable = expandoTableLocalService.fetchTable(
+			TestPropsValues.getCompanyId(),
+			classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
+
+		if (expandoTable == null) {
+			expandoTable = expandoTableLocalService.addTable(
+				TestPropsValues.getCompanyId(),
+				classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
+
+			expandoTables.add(expandoTable);
+		}
+
+		for (String column : columns) {
+			ExpandoColumn expandoColumn = ExpandoTestUtil.addColumn(
+			expandoTable, column, ExpandoColumnConstants.STRING);
+			expandoColumns.add(expandoColumn);
+			
+			UnicodeProperties unicodeProperties =
+			expandoColumn.getTypeSettingsProperties();
+
+			unicodeProperties.setProperty(
+				ExpandoColumnConstants.INDEX_TYPE, String.valueOf(indexType));
+
+			expandoColumn.setTypeSettingsProperties(unicodeProperties);
+			
+			expandoColumnLocalService.updateExpandoColumn(expandoColumn);
+		}
+	}
 
 	private boolean _isSearchEngine(String vendor) {
 		SearchEngine searchEngine = _searchEngineHelper.getSearchEngine(
@@ -147,5 +194,5 @@ public class IndexedFieldsFixture {
 	private final ResourcePermissionLocalService
 		_resourcePermissionLocalService;
 	private final SearchEngineHelper _searchEngineHelper;
-
+		
 }

@@ -89,10 +89,7 @@ public class OrganizationIndexerIndexedFieldsTest
 		throws Exception {
 
 		Map<String, String> map = new HashMap<>();
-
-		String portletUID =
-			Organization.class.getName() + "_PORTLET_" +
-				organization.getOrganizationId();
+					
 		String countryName = getCountryNameForAllAvailableLocales(organization);
 
 		Region region = regionService.getRegion(organization.getRegionId());
@@ -125,7 +122,7 @@ public class OrganizationIndexerIndexedFieldsTest
 		map.put("nameTreePath", organization.getName());
 		map.put(Field.NAME, organization.getName());
 		map.put(Field.TREE_PATH, organization.getTreePath());
-		map.put(Field.UID, portletUID);
+		indexedFieldsFixture.populateUID(Organization.class.getName(), organization.getOrganizationId(), map);
 		map.put(Field.TYPE, organization.getType());
 		
 		_populateDates(organization, map);

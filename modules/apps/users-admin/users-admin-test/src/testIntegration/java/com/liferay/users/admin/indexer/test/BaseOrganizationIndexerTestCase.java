@@ -114,40 +114,7 @@ public abstract class BaseOrganizationIndexerTestCase {
 
 	protected void setIndexerClass(Class<?> clazz) {
 		organizationSearchFixture.setIndexerClass(clazz);
-	}
-	
-	protected void addExpandoColumn(
-			Class<?> clazz, List<String> columns, int indexType)
-		throws Exception {
-
-		ExpandoTable expandoTable = expandoTableLocalService.fetchTable(
-			TestPropsValues.getCompanyId(),
-			classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
-
-		if (expandoTable == null) {
-			expandoTable = expandoTableLocalService.addTable(
-				TestPropsValues.getCompanyId(),
-				classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
-
-			expandoTables.add(expandoTable);
-		}
-
-		for (String column : columns) {
-			ExpandoColumn expandoColumn = ExpandoTestUtil.addColumn(
-			expandoTable, column, ExpandoColumnConstants.STRING);
-			expandoColumns.add(expandoColumn);
-			
-			UnicodeProperties unicodeProperties =
-			expandoColumn.getTypeSettingsProperties();
-
-			unicodeProperties.setProperty(
-				ExpandoColumnConstants.INDEX_TYPE, String.valueOf(indexType));
-
-			expandoColumn.setTypeSettingsProperties(unicodeProperties);
-			
-			expandoColumnLocalService.updateExpandoColumn(expandoColumn);
-		}
-	}
+	}	
 
 	@Inject
 	protected ClassNameLocalService classNameLocalService;

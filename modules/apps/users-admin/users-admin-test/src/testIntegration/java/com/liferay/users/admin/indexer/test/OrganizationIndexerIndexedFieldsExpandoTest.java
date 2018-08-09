@@ -60,13 +60,14 @@ public class OrganizationIndexerIndexedFieldsExpandoTest extends BaseOrganizatio
 		String expandoColumnName = "expandoColumnName";
 		String expandoColumnValue2 = "Software Developer";
 		
-		List<String> expandoColumns  = new ArrayList<String>();
-		expandoColumns.add(expandoColumnObs);
-		expandoColumns.add(expandoColumnName);
+		List<String> lstExpandoColumns  = new ArrayList<String>();
+		lstExpandoColumns.add(expandoColumnObs);
+		lstExpandoColumns.add(expandoColumnName);
 				
-		addExpandoColumn(
-				Organization.class, expandoColumns,
-				ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
+		indexedFieldsFixture.addExpandoColumn(classNameLocalService, expandoColumnLocalService, 
+			expandoColumns, expandoTableLocalService, expandoTables,
+			Organization.class, lstExpandoColumns,
+			ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
 
 		Map<String, Serializable> expandoValues = new HashMap<>();
 		expandoValues.put(expandoColumnObs, expandoColumnValue);
@@ -87,16 +88,14 @@ public class OrganizationIndexerIndexedFieldsExpandoTest extends BaseOrganizatio
 		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
 	}
 
-
-
 	protected Map<String, String> expectedFieldValues(Organization organization)
 		throws Exception {
 
 		Map<String, String> map = new HashMap<>();
 
-		String portletUID =
-			Organization.class.getName() + "_PORTLET_" +
-				organization.getOrganizationId();
+//		String portletUID =
+//			Organization.class.getName() + "_PORTLET_" +
+//				organization.getOrganizationId();
 		String countryName = getCountryNameForAllAvailableLocales(organization);
 
 		Region region = regionService.getRegion(organization.getRegionId());
@@ -129,7 +128,7 @@ public class OrganizationIndexerIndexedFieldsExpandoTest extends BaseOrganizatio
 		map.put("nameTreePath", organization.getName());
 		map.put(Field.NAME, organization.getName());
 		map.put(Field.TREE_PATH, organization.getTreePath());
-		map.put(Field.UID, portletUID);
+		indexedFieldsFixture.populateUID(Organization.class.getName(), organization.getOrganizationId(), map);
 		map.put(Field.TYPE, organization.getType());
 
 		map.put(
