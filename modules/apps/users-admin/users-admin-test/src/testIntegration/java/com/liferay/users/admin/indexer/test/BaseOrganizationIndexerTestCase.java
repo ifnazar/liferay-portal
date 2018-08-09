@@ -14,6 +14,12 @@
 
 package com.liferay.users.admin.indexer.test;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
 import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.expando.kernel.model.ExpandoTable;
@@ -37,12 +43,6 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.search.test.util.IndexedFieldsFixture;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portlet.expando.util.test.ExpandoTestUtil;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 /**
  * @author Igor Fabiano Nazar
@@ -117,7 +117,7 @@ public abstract class BaseOrganizationIndexerTestCase {
 	}
 	
 	protected void addExpandoColumn(
-			Class<?> clazz, String columnName, int indexType)
+			Class<?> clazz, List<String> columns, int indexType)
 		throws Exception {
 
 		ExpandoTable expandoTable = expandoTableLocalService.fetchTable(
@@ -132,20 +132,21 @@ public abstract class BaseOrganizationIndexerTestCase {
 			expandoTables.add(expandoTable);
 		}
 
-		ExpandoColumn expandoColumn = ExpandoTestUtil.addColumn(
-			expandoTable, columnName, ExpandoColumnConstants.STRING);
-
-		expandoColumns.add(expandoColumn);
-
-		UnicodeProperties unicodeProperties =
+		for (String column : columns) {
+			ExpandoColumn expandoColumn = ExpandoTestUtil.addColumn(
+			expandoTable, column, ExpandoColumnConstants.STRING);
+			expandoColumns.add(expandoColumn);
+			
+			UnicodeProperties unicodeProperties =
 			expandoColumn.getTypeSettingsProperties();
 
-		unicodeProperties.setProperty(
-			ExpandoColumnConstants.INDEX_TYPE, String.valueOf(indexType));
+			unicodeProperties.setProperty(
+				ExpandoColumnConstants.INDEX_TYPE, String.valueOf(indexType));
 
-		expandoColumn.setTypeSettingsProperties(unicodeProperties);
-		
-		expandoColumnLocalService.updateExpandoColumn(expandoColumn);
+			expandoColumn.setTypeSettingsProperties(unicodeProperties);
+			
+			expandoColumnLocalService.updateExpandoColumn(expandoColumn);
+		}
 	}
 
 	@Inject
