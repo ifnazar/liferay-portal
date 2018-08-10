@@ -126,7 +126,7 @@ public class OrganizationIndexerIndexedFieldsTest
 		map.put(Field.TYPE, organization.getType());
 		
 		_populateDates(organization, map);
-		// _populateRoles(organization, map);
+		_populateRoles(organization, map);
 
 		return map;
 	}
