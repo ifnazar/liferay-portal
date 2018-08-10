@@ -15,6 +15,7 @@
 package com.liferay.users.admin.indexer.test;
 
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
@@ -59,6 +60,10 @@ public class OrganizationSearchFixture {
 		Hits search = search(getSearchContext(keywords, locale));
 
 		return HitsAssert.assertOnlyOne(search);
+	}
+	
+	protected void reindex(Organization organization) throws Exception {
+		_indexer.reindex(new String[] {String.valueOf(organization.getCompanyId())});
 	}
 
 	public void setIndexerClass(Class<?> clazz) {
