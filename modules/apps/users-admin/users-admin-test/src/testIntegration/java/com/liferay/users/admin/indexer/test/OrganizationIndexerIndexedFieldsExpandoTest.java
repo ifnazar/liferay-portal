@@ -64,8 +64,7 @@ public class OrganizationIndexerIndexedFieldsExpandoTest extends BaseOrganizatio
 		lstExpandoColumns.add(expandoColumnObs);
 		lstExpandoColumns.add(expandoColumnName);
 				
-		indexedFieldsFixture.addExpandoColumn(classNameLocalService, expandoColumnLocalService, 
-			expandoColumns, expandoTableLocalService, expandoTables,
+		addExpandoColumn(
 			Organization.class, lstExpandoColumns,
 			ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
 

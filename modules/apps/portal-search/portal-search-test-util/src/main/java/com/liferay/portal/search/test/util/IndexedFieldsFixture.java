@@ -138,42 +138,7 @@ public class IndexedFieldsFixture {
 			map.put(field, values.toString());
 		}
 	}
-		
-	public void addExpandoColumn(ClassNameLocalService classNameLocalService, 
-			ExpandoColumnLocalService expandoColumnLocalService,  List<ExpandoColumn> expandoColumns,
-			ExpandoTableLocalService expandoTableLocalService, List<ExpandoTable> expandoTables,
-			Class<?> clazz, List<String> columns, int indexType)
-		throws Exception {
-
-		ExpandoTable expandoTable = expandoTableLocalService.fetchTable(
-			TestPropsValues.getCompanyId(),
-			classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
-
-		if (expandoTable == null) {
-			expandoTable = expandoTableLocalService.addTable(
-				TestPropsValues.getCompanyId(),
-				classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
-
-			expandoTables.add(expandoTable);
-		}
-
-		for (String column : columns) {
-			ExpandoColumn expandoColumn = ExpandoTestUtil.addColumn(
-			expandoTable, column, ExpandoColumnConstants.STRING);
-			expandoColumns.add(expandoColumn);
 			
-			UnicodeProperties unicodeProperties =
-			expandoColumn.getTypeSettingsProperties();
-
-			unicodeProperties.setProperty(
-				ExpandoColumnConstants.INDEX_TYPE, String.valueOf(indexType));
-
-			expandoColumn.setTypeSettingsProperties(unicodeProperties);
-			
-			expandoColumnLocalService.updateExpandoColumn(expandoColumn);
-		}
-	}
-
 	private boolean _isSearchEngine(String vendor) {
 		SearchEngine searchEngine = _searchEngineHelper.getSearchEngine(
 			_searchEngineHelper.getDefaultSearchEngineId());
