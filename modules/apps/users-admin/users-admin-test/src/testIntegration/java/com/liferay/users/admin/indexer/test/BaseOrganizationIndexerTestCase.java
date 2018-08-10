@@ -14,12 +14,6 @@
 
 package com.liferay.users.admin.indexer.test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 import com.liferay.expando.kernel.model.ExpandoColumn;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.expando.kernel.model.ExpandoTable;
@@ -44,11 +38,51 @@ import com.liferay.portal.search.test.util.IndexedFieldsFixture;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portlet.expando.util.test.ExpandoTestUtil;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
 /**
  * @author Igor Fabiano Nazar
  * @author Luan Maoski
  */
 public abstract class BaseOrganizationIndexerTestCase {
+
+	public void addExpandoColumn(
+			Class<?> clazz, List<String> columns, int indexType)
+		throws Exception {
+
+		ExpandoTable expandoTable = expandoTableLocalService.fetchTable(
+			TestPropsValues.getCompanyId(),
+			classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
+
+		if (expandoTable == null) {
+			expandoTable = expandoTableLocalService.addTable(
+				TestPropsValues.getCompanyId(),
+				classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
+
+			expandoTables.add(expandoTable);
+		}
+
+		for (String column : columns) {
+			ExpandoColumn expandoColumn = ExpandoTestUtil.addColumn(
+				expandoTable, column, ExpandoColumnConstants.STRING);
+
+			expandoColumns.add(expandoColumn);
+
+			UnicodeProperties unicodeProperties =
+				expandoColumn.getTypeSettingsProperties();
+
+			unicodeProperties.setProperty(
+				ExpandoColumnConstants.INDEX_TYPE, String.valueOf(indexType));
+
+			expandoColumn.setTypeSettingsProperties(unicodeProperties);
+
+			expandoColumnLocalService.updateExpandoColumn(expandoColumn);
+		}
+	}
 
 	public void setUp() throws Exception {
 		organizationFixture = createOrganizationFixture();
@@ -71,40 +105,8 @@ public abstract class BaseOrganizationIndexerTestCase {
 	}
 
 	protected OrganizationSearchFixture createOrganizationSearchFixture() {
-		return new OrganizationSearchFixture(indexerRegistry);
-	}
-	
-	public void addExpandoColumn(
-			Class<?> clazz, List<String> columns, int indexType)
-		throws Exception {
-
-		ExpandoTable expandoTable = expandoTableLocalService.fetchTable(
-			TestPropsValues.getCompanyId(),
-			classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
-
-		if (expandoTable == null) {
-			expandoTable = expandoTableLocalService.addTable(
-				TestPropsValues.getCompanyId(),
-				classNameLocalService.getClassNameId(clazz), "CUSTOM_FIELDS");
-
-			expandoTables.add(expandoTable);
-		}
-
-		for (String column : columns) {
-			ExpandoColumn expandoColumn = ExpandoTestUtil.addColumn(
-			expandoTable, column, ExpandoColumnConstants.STRING);
-			expandoColumns.add(expandoColumn);
-			
-			UnicodeProperties unicodeProperties =
-			expandoColumn.getTypeSettingsProperties();
-
-			unicodeProperties.setProperty(
-				ExpandoColumnConstants.INDEX_TYPE, String.valueOf(indexType));
-
-			expandoColumn.setTypeSettingsProperties(unicodeProperties);
-			
-			expandoColumnLocalService.updateExpandoColumn(expandoColumn);
-		}
+		return new OrganizationSearchFixture(
+			Organization.class, indexerRegistry);
 	}
 
 	protected String getCountryNameForAllAvailableLocales(
@@ -144,10 +146,6 @@ public abstract class BaseOrganizationIndexerTestCase {
 	protected void setGroup(Group group) {
 		organizationFixture.setGroup(group);
 	}
-
-	protected void setIndexerClass(Class<?> clazz) {
-		organizationSearchFixture.setIndexerClass(clazz);
-	}	
 
 	@Inject
 	protected ClassNameLocalService classNameLocalService;

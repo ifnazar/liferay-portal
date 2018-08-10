@@ -32,8 +32,9 @@ import org.junit.runner.RunWith;
  * @author Lucas Marques de Paula
  */
 @RunWith(Arquillian.class)
-public class OrganizationIndexerReindexTest extends BaseOrganizationIndexerTestCase {
-	
+public class OrganizationIndexerReindexTest
+	extends BaseOrganizationIndexerTestCase {
+
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
@@ -45,17 +46,18 @@ public class OrganizationIndexerReindexTest extends BaseOrganizationIndexerTestC
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		setIndexerClass(Organization.class);
-		super.setGroup(organizationFixture.addGroup());		
+
+		super.setGroup(organizationFixture.addGroup());
 	}
 
 	@Test
 	public void testIndexedFields() throws Exception {
 		organizationFixture.updateDisplaySettings(LocaleUtil.JAPAN);
-				
+
 		String organizationName = "新規作成";
 		String countryName = "united-states";
-		String regionName = "Alabama";		
+
+		String regionName = "Alabama";
 
 		Organization organization = organizationFixture.createAnOrganization(
 			organizationName, countryName, regionName, null);
@@ -64,7 +66,7 @@ public class OrganizationIndexerReindexTest extends BaseOrganizationIndexerTestC
 
 		organizationSearchFixture.searchOnlyOne(searchTerm, LocaleUtil.JAPAN);
 
-		organizationSearchFixture.reindex(organization);
+		organizationSearchFixture.reindex(organization.getPrimaryKey());
 
 		organizationSearchFixture.searchOnlyOne(searchTerm, LocaleUtil.JAPAN);
 	}

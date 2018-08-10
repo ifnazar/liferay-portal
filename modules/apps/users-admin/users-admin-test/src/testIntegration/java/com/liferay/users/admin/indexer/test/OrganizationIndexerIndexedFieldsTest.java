@@ -14,18 +14,6 @@
 
 package com.liferay.users.admin.indexer.test;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.portal.kernel.model.Organization;
@@ -39,6 +27,19 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerTestRule;
+
+import java.io.Serializable;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * @author Igor Fabiano Nazar
@@ -61,32 +62,8 @@ public class OrganizationIndexerIndexedFieldsTest
 		super.setUp();
 
 		setGroup(organizationFixture.addGroup());
-		setIndexerClass(Organization.class);
 	}
 
-	@Test
-	public void testIndexedFields() throws Exception {
-		organizationFixture.updateDisplaySettings(LocaleUtil.JAPAN);
-
-		String organizationName = "新規作成";
-		String countryName = "united-states";
-		String regionName = "Alabama";	
-							
-		Organization organization = organizationFixture.createAnOrganization(
-			organizationName, countryName, regionName, null);
-
-		String searchTerm = "新規";
-
-		Document document = organizationSearchFixture.searchOnlyOne(
-			searchTerm, LocaleUtil.JAPAN);
-
-		indexedFieldsFixture.postProcessDocument(document);
-
-		Map<String, String> expected = expectedFieldValues(organization, false);
-
-		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
-	}
-	
 	@Test
 	public void testExpandoIndexedFields() throws Exception {
 		organizationFixture.updateDisplaySettings(LocaleUtil.JAPAN);
@@ -98,19 +75,21 @@ public class OrganizationIndexerIndexedFieldsTest
 		String expandoColumnValue = "Software Engineer";
 		String expandoColumnName = "expandoColumnName";
 		String expandoColumnValue2 = "Software Developer";
-		
-		List<String> lstExpandoColumns  = new ArrayList<String>();
+
+		List<String> lstExpandoColumns = new ArrayList<>();
+
 		lstExpandoColumns.add(expandoColumnObs);
 		lstExpandoColumns.add(expandoColumnName);
-				
+
 		addExpandoColumn(
 			Organization.class, lstExpandoColumns,
 			ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
 
 		Map<String, Serializable> expandoValues = new HashMap<>();
+
 		expandoValues.put(expandoColumnObs, expandoColumnValue);
 		expandoValues.put(expandoColumnName, expandoColumnValue2);
-		
+
 		Organization organization = organizationFixture.createAnOrganization(
 			organizationName, countryName, regionName, expandoValues);
 
@@ -126,11 +105,36 @@ public class OrganizationIndexerIndexedFieldsTest
 		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
 	}
 
-	protected Map<String, String> expectedFieldValues(Organization organization, Boolean expando)
+	@Test
+	public void testIndexedFields() throws Exception {
+		organizationFixture.updateDisplaySettings(LocaleUtil.JAPAN);
+
+		String organizationName = "新規作成";
+		String countryName = "united-states";
+
+		String regionName = "Alabama";
+
+		Organization organization = organizationFixture.createAnOrganization(
+			organizationName, countryName, regionName, null);
+
+		String searchTerm = "新規";
+
+		Document document = organizationSearchFixture.searchOnlyOne(
+			searchTerm, LocaleUtil.JAPAN);
+
+		indexedFieldsFixture.postProcessDocument(document);
+
+		Map<String, String> expected = expectedFieldValues(organization, false);
+
+		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
+	}
+
+	protected Map<String, String> expectedFieldValues(
+			Organization organization, Boolean expando)
 		throws Exception {
 
 		Map<String, String> map = new HashMap<>();
-					
+
 		String countryName = getCountryNameForAllAvailableLocales(organization);
 
 		Region region = regionService.getRegion(organization.getRegionId());
@@ -163,18 +167,22 @@ public class OrganizationIndexerIndexedFieldsTest
 		map.put("nameTreePath", organization.getName());
 		map.put(Field.NAME, organization.getName());
 		map.put(Field.TREE_PATH, organization.getTreePath());
-		indexedFieldsFixture.populateUID(Organization.class.getName(), organization.getOrganizationId(), map);
+
+		indexedFieldsFixture.populateUID(
+			Organization.class.getName(), organization.getOrganizationId(),
+			map);
+
 		map.put(Field.TYPE, organization.getType());
-		
-		if(expando) {
+
+		if (expando) {
 			map.put(
-					"expando__keyword__custom_fields__expandoColumnObs",
-					"Software Engineer");
+				"expando__keyword__custom_fields__expandoColumnName",
+				"Software Developer");
 			map.put(
-					"expando__keyword__custom_fields__expandoColumnName",
-					"Software Developer");
+				"expando__keyword__custom_fields__expandoColumnObs",
+				"Software Engineer");
 		}
-		
+
 		_populateDates(organization, map);
 		_populateRoles(organization, map);
 

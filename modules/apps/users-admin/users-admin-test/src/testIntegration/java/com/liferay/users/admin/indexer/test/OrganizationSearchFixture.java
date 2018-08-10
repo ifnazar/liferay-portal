@@ -15,7 +15,6 @@
 package com.liferay.users.admin.indexer.test;
 
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
@@ -34,8 +33,13 @@ import java.util.Objects;
  */
 public class OrganizationSearchFixture {
 
-	public OrganizationSearchFixture(IndexerRegistry indexerRegistry) {
+	public OrganizationSearchFixture(
+		Class<?> clazz, IndexerRegistry indexerRegistry) {
+
+		_clazz = clazz;
 		_indexerRegistry = indexerRegistry;
+
+		_indexer = _indexerRegistry.getIndexer(clazz);
 	}
 
 	public SearchContext getSearchContext(String keywords, Locale locale)
@@ -61,24 +65,21 @@ public class OrganizationSearchFixture {
 
 		return HitsAssert.assertOnlyOne(search);
 	}
-	
-	protected void reindex(Organization organization) throws Exception {
-		_indexer.reindex(new String[] {String.valueOf(organization.getCompanyId())});
-	}
-
-	public void setIndexerClass(Class<?> clazz) {
-		_indexer = _indexerRegistry.getIndexer(clazz);
-	}
 
 	protected long getUserId() throws Exception {
 		return TestPropsValues.getUserId();
+	}
+
+	protected void reindex(long classPK) throws Exception {
+		_indexer.reindex(_clazz.getName(), classPK);
 	}
 
 	protected Hits search(SearchContext searchContext) throws Exception {
 		return _indexer.search(searchContext);
 	}
 
-	private Indexer<?> _indexer;
+	private final Class<?> _clazz;
+	private final Indexer<?> _indexer;
 	private final IndexerRegistry _indexerRegistry;
 
 }
