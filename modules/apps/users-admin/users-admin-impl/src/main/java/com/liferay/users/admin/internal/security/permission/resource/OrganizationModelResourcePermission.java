@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.users.admin.internal.search;
+package com.liferay.users.admin.internal.security.permission.resource;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Organization;
