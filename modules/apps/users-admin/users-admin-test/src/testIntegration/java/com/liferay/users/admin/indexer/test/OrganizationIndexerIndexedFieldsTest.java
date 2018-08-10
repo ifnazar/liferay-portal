@@ -14,7 +14,10 @@
 
 package com.liferay.users.admin.indexer.test;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -24,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.expando.kernel.model.ExpandoColumnConstants;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.search.Document;
@@ -78,14 +82,51 @@ public class OrganizationIndexerIndexedFieldsTest
 
 		indexedFieldsFixture.postProcessDocument(document);
 
-		Map<String, String> expected = expectedFieldValues(organization);
+		Map<String, String> expected = expectedFieldValues(organization, false);
+
+		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
+	}
+	
+	@Test
+	public void testExpandoIndexedFields() throws Exception {
+		organizationFixture.updateDisplaySettings(LocaleUtil.JAPAN);
+
+		String organizationName = "新規作成";
+		String countryName = "united-states";
+		String regionName = "Alabama";
+		String expandoColumnObs = "expandoColumnObs";
+		String expandoColumnValue = "Software Engineer";
+		String expandoColumnName = "expandoColumnName";
+		String expandoColumnValue2 = "Software Developer";
+		
+		List<String> lstExpandoColumns  = new ArrayList<String>();
+		lstExpandoColumns.add(expandoColumnObs);
+		lstExpandoColumns.add(expandoColumnName);
+				
+		addExpandoColumn(
+			Organization.class, lstExpandoColumns,
+			ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
+
+		Map<String, Serializable> expandoValues = new HashMap<>();
+		expandoValues.put(expandoColumnObs, expandoColumnValue);
+		expandoValues.put(expandoColumnName, expandoColumnValue2);
+		
+		Organization organization = organizationFixture.createAnOrganization(
+			organizationName, countryName, regionName, expandoValues);
+
+		String searchTerm = "Developer";
+
+		Document document = organizationSearchFixture.searchOnlyOne(
+			searchTerm, LocaleUtil.JAPAN);
+
+		indexedFieldsFixture.postProcessDocument(document);
+
+		Map<String, String> expected = expectedFieldValues(organization, true);
 
 		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
 	}
 
-
-
-	protected Map<String, String> expectedFieldValues(Organization organization)
+	protected Map<String, String> expectedFieldValues(Organization organization, Boolean expando)
 		throws Exception {
 
 		Map<String, String> map = new HashMap<>();
@@ -124,6 +165,15 @@ public class OrganizationIndexerIndexedFieldsTest
 		map.put(Field.TREE_PATH, organization.getTreePath());
 		indexedFieldsFixture.populateUID(Organization.class.getName(), organization.getOrganizationId(), map);
 		map.put(Field.TYPE, organization.getType());
+		
+		if(expando) {
+			map.put(
+					"expando__keyword__custom_fields__expandoColumnObs",
+					"Software Engineer");
+			map.put(
+					"expando__keyword__custom_fields__expandoColumnName",
+					"Software Developer");
+		}
 		
 		_populateDates(organization, map);
 		_populateRoles(organization, map);

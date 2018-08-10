@@ -15,7 +15,6 @@
 package com.liferay.users.admin.indexer.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
