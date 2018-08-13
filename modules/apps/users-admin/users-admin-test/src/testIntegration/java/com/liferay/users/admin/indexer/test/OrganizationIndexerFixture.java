@@ -69,6 +69,12 @@ public class OrganizationIndexerFixture {
 		return TestPropsValues.getUserId();
 	}
 
+	protected void reindex(long companyId) throws Exception {
+		String[] ids = {String.valueOf(companyId)};
+
+		_indexer.reindex(ids);
+	}
+
 	protected Hits search(SearchContext searchContext) throws Exception {
 		return _indexer.search(searchContext);
 	}
