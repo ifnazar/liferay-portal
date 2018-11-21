@@ -20,6 +20,7 @@ Export-Package:\
 	com.liferay.portal.search.facet.type,\
 	com.liferay.portal.search.facet.user,\
 	com.liferay.portal.search.filter,\
+	com.liferay.portal.search.filter.custom,\
 	com.liferay.portal.search.index,\
 	com.liferay.portal.search.indexer,\
 	com.liferay.portal.search.permission,\
