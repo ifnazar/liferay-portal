@@ -70,6 +70,10 @@ public class IndexerFixture {
 		return _indexer.search(searchContext);
 	}
 
+	public void setIsEnable(boolean enable) {
+		_indexer.setIndexerEnabled(enable);
+	}
+
 	private long _getCompanyId() throws PortalException {
 		return TestPropsValues.getCompanyId();
 	}
