@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.search.index.IndexStatusManager;
 
 import java.util.List;
 
@@ -64,6 +65,15 @@ public class JournalArticleDDMStructureIndexer implements DDMStructureIndexer {
 		throws SearchException {
 
 		try {
+			final Indexer<JournalArticle> indexer =
+				indexerRegistry.nullSafeGetIndexer(JournalArticle.class);
+
+			if (_indexStatusManager.isIndexReadOnly() ||
+				!indexer.isIndexerEnabled()) {
+
+				return;
+			}
+
 			final String[] ddmStructureKeys =
 				new String[ddmStructureIds.size()];
 
@@ -75,9 +85,6 @@ public class JournalArticleDDMStructureIndexer implements DDMStructureIndexer {
 
 				ddmStructureKeys[i] = ddmStructure.getStructureKey();
 			}
-
-			final Indexer<JournalArticle> indexer =
-				indexerRegistry.nullSafeGetIndexer(JournalArticle.class);
 
 			final ActionableDynamicQuery actionableDynamicQuery =
 				journalArticleResourceLocalService.getActionableDynamicQuery();
@@ -147,7 +154,6 @@ public class JournalArticleDDMStructureIndexer implements DDMStructureIndexer {
 		}
 	}
 
-
 	protected boolean isIndexAllArticleVersions() {
 		JournalServiceConfiguration journalServiceConfiguration = null;
 
@@ -181,5 +187,8 @@ public class JournalArticleDDMStructureIndexer implements DDMStructureIndexer {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalArticleDDMStructureIndexer.class);
+
+	@Reference
+	private IndexStatusManager _indexStatusManager;
 
 }
