@@ -45,6 +45,44 @@ public final class DDMStructureBackgroundTaskExecutorTest
 	}
 
 	@Test
+	public void testDisableJournalArticleIndexer()
+		throws Exception, PortalException {
+
+		Group group = addGroup();
+
+		IndexerFixture indexerFixture = new IndexerFixture(
+			JournalArticle.class);
+
+		indexerFixture.setIsEnable(true);
+
+		DDMStructure ddmStructure = addDDMStructure(
+			group, JournalArticle.class);
+
+		DDMTemplate template = addDDMTemplate(group, ddmStructure);
+
+		String keywords = "私はプログラミングが大好きです";
+
+		for (int i = 1; i <= NUMBER_OF_SAMPLES; i++) {
+			String title = String.format(
+				"%s - %s - %02d", keywords, RandomTestUtil.randomString(), i);
+
+			addJournalArticle(group, ddmStructure, template, title);
+		}
+
+		Hits hits = indexerFixture.search(keywords);
+
+		assertHitsLength(NUMBER_OF_SAMPLES, hits);
+
+		indexerFixture.deleteDocuments(hits.getDocs());
+
+		indexerFixture.setIsEnable(false);
+
+		reindex(ddmStructure);
+
+		assertHitsLength(0, indexerFixture.search(keywords));
+	}
+
+	@Test
 	public void testReindexDLFileEntry() throws Exception, PortalException {
 		Group group = addGroup();
 
@@ -84,6 +122,11 @@ public final class DDMStructureBackgroundTaskExecutorTest
 	public void testReindexJournalArticle() throws Exception, PortalException {
 		Group group = addGroup();
 
+		IndexerFixture indexerFixture = new IndexerFixture(
+			JournalArticle.class);
+
+		indexerFixture.setIsEnable(true);
+
 		DDMStructure ddmStructure = addDDMStructure(
 			group, JournalArticle.class);
 
@@ -97,9 +140,6 @@ public final class DDMStructureBackgroundTaskExecutorTest
 
 			addJournalArticle(group, ddmStructure, template, title);
 		}
-
-		IndexerFixture indexerFixture = new IndexerFixture(
-			JournalArticle.class);
 
 		Hits hits = indexerFixture.search(keywords);
 
