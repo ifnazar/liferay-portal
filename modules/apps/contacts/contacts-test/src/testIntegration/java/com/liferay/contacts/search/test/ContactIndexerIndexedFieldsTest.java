@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -90,6 +91,7 @@ public class ContactIndexerIndexedFieldsTest
 		Map<String, String> expected = expectedFieldValues(contact);
 
 		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
+		Assert.assertEquals("XXXXXXXXX","00","11");
 	}
 
 	protected Map<String, String> expectedFieldValues(Contact contact)

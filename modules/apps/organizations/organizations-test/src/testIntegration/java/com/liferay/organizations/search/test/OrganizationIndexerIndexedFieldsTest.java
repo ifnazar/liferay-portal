@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -124,6 +125,7 @@ public class OrganizationIndexerIndexedFieldsTest
 			organization);
 
 		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
+		Assert.assertEquals("XXXXXXXXX","00","11");
 	}
 
 	private Map<String, String> _expectedFieldValues(Organization organization)
