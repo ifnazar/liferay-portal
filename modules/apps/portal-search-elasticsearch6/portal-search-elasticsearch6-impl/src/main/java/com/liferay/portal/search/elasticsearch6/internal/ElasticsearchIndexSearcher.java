@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.search.Query;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
+import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.suggest.QuerySuggester;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,7 +46,9 @@ import com.liferay.portal.search.engine.adapter.search.CountSearchResponse;
 import com.liferay.portal.search.engine.adapter.search.SearchSearchRequest;
 import com.liferay.portal.search.engine.adapter.search.SearchSearchResponse;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.time.StopWatch;
 
@@ -120,7 +123,6 @@ public class ElasticsearchIndexSearcher extends BaseIndexSearcher {
 
 				int[] startAndEnd = SearchPaginationUtil.calculateStartAndEnd(
 					start, end, hits.getLength());
-
 				start = startAndEnd[0];
 				end = startAndEnd[1];
 			}
@@ -267,6 +269,8 @@ public class ElasticsearchIndexSearcher extends BaseIndexSearcher {
 
 		searchSearchRequest.setLuceneSyntax(luceneSyntax);
 
+		_addCustomFilterValues(searchContext, query);
+
 		searchSearchRequest.setQuery(query);
 		searchSearchRequest.setPostFilter(query.getPostFilter());
 
@@ -344,6 +348,29 @@ public class ElasticsearchIndexSearcher extends BaseIndexSearcher {
 
 	@Reference(target = "(search.engine.impl=Elasticsearch)")
 	protected SearchEngineAdapter searchEngineAdapter;
+
+	private void _addCustomFilterValues(
+		SearchContext searchContext, Query query) {
+
+		@SuppressWarnings("unchecked")
+		HashMap<String, String> customFilterMap =
+			(HashMap<String, String>)searchContext.getAttribute(
+				"customFilterWidget");
+
+		if (customFilterMap != null) {
+			BooleanFilter preBooleanFilter = query.getPreBooleanFilter();
+
+			Set<Map.Entry<String, String>> entries = customFilterMap.entrySet();
+
+			for (Map.Entry<String, String> entry : entries) {
+				final String field = entry.getKey();
+
+				final String value = entry.getValue();
+
+				preBooleanFilter.addTerm(field, value);
+			}
+		}
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ElasticsearchIndexSearcher.class);
