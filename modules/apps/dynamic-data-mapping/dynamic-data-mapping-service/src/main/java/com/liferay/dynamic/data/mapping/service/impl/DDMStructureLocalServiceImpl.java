@@ -15,6 +15,7 @@
 package com.liferay.dynamic.data.mapping.service.impl;
 
 import com.liferay.dynamic.data.mapping.background.task.DDMStructureIndexerBackgroundTaskExecutor;
+import com.liferay.dynamic.data.mapping.background.task.DDMStructureIndexerServiceUtil;
 import com.liferay.dynamic.data.mapping.exception.InvalidParentStructureException;
 import com.liferay.dynamic.data.mapping.exception.InvalidStructureVersionException;
 import com.liferay.dynamic.data.mapping.exception.NoSuchStructureException;
@@ -2045,8 +2046,10 @@ public class DDMStructureLocalServiceImpl
 			return;
 		}
 
-		Indexer<?> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-			structure.getClassName());
+		String className = structure.getClassName();
+
+		DDMStructureIndexer indexer =
+			ddmStructureIndexerServiceUtil.getDDMStructureIndexer(className);
 
 		if (!(indexer instanceof DDMStructureIndexer)) {
 			return;
@@ -2280,6 +2283,9 @@ public class DDMStructureLocalServiceImpl
 
 	@ServiceReference(type = DDMSearchHelper.class)
 	protected DDMSearchHelper ddmSearchHelper;
+
+	@ServiceReference(type = DDMStructureIndexerServiceUtil.class)
+	protected DDMStructureIndexerServiceUtil ddmStructureIndexerServiceUtil;
 
 	@ServiceReference(type = DDMXML.class)
 	protected DDMXML ddmXML;
