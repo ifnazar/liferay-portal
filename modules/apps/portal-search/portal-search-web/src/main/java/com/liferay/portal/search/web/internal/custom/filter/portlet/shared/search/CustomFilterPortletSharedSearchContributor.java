@@ -15,13 +15,17 @@
 package com.liferay.portal.search.web.internal.custom.filter.portlet.shared.search;
 
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.search.filter.DateRangeFilterBuilder;
 import com.liferay.portal.search.web.internal.custom.filter.constants.CustomFilterPortletKeys;
 import com.liferay.portal.search.web.internal.custom.filter.portlet.CustomFilterPortletPreferences;
 import com.liferay.portal.search.web.internal.custom.filter.portlet.CustomFilterPortletPreferencesImpl;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchContributor;
 import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchSettings;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -29,6 +33,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Igor Nazar
@@ -48,30 +53,39 @@ public class CustomFilterPortletSharedSearchContributor
 
 		CustomFilterPortletPreferences customFilterPortletPreferences =
 			new CustomFilterPortletPreferencesImpl(
-				portletSharedSearchSettings.getPortletPreferences());
+				portletSharedSearchSettings.getPortletPreferences(),
+				_jsonFactory);
 
 		Optional<String> fieldFieldOptional =
 			customFilterPortletPreferences.getFilterFieldOptional();
 
 		String fieldValueOptional =
-			customFilterPortletPreferences.getFilterValueString();
+			customFilterPortletPreferences.getFilterValue();
 
+		String selectedValue =
+			customFilterPortletPreferences.getSelectedValue();
+				
+		String dateValue = customFilterPortletPreferences.getDateValue();
+				
 		fieldFieldOptional.ifPresent(
 			fieldField -> {
 				buildFilter(
-					fieldField, fieldValueOptional,
+					fieldField, fieldValueOptional, selectedValue, dateValue,
 					customFilterPortletPreferences,
 					portletSharedSearchSettings);
 			});
 	}
 
 	protected void buildFilter(
-		String filterField, String filterValue,
+		String filterField, String filterValue, String selectedValue,
+		String dateValue,
 		CustomFilterPortletPreferences customFilterPortletPreferences,
 		PortletSharedSearchSettings portletSharedSearchSettings) {
 
 		SearchContext searchContext =
 			portletSharedSearchSettings.getSearchContext();
+
+		filterField = selectedValue;
 
 		@SuppressWarnings("unchecked")
 		HashMap<String, String> customFilterMap =
@@ -82,8 +96,18 @@ public class CustomFilterPortletSharedSearchContributor
 			customFilterMap = new HashMap<>();
 		}
 
-		customFilterMap.put(filterField, filterValue);
-
+		String formattedDateStart = null;
+		String formattedDateEnd = null;
+		
+		if(dateValue != null && !dateValue.trim().equals("")) {			
+			formattedDateStart = _formatDate(dateValue, true);
+			formattedDateEnd = _formatDate(dateValue, false);	
+			customFilterMap.put(filterField, 
+				formattedDateStart + "," + formattedDateEnd);						
+		}else if (filterValue != null && filterValue.trim().equals("") ) {
+			customFilterMap.put(filterField, filterValue);
+		}
+									
 		searchContext.setAttribute("customFilterWidget", customFilterMap);
 	}
 
@@ -97,7 +121,7 @@ public class CustomFilterPortletSharedSearchContributor
 		CustomFilterPortletPreferences customFilterPortletPreferences,
 		String portletId) {
 
-		return customFilterPortletPreferences.getFilterFieldString() +
+		return customFilterPortletPreferences.getFilterField() +
 			StringPool.PERIOD + portletId;
 	}
 
@@ -114,5 +138,25 @@ public class CustomFilterPortletSharedSearchContributor
 
 		return optional.orElse("customfield");
 	}
+	
+	private String _formatDate(String date, boolean period) {
+		try {
+			DateFormat df2 = new SimpleDateFormat("MM/dd/yyyy");
+			
+			if(period) {
+				DateFormat dfStart = new SimpleDateFormat("yyyyMMdd000000");
+				return dfStart.format(df2.parse(date));
+			}else {
+				DateFormat dfEnd = new SimpleDateFormat("yyyyMMdd235959");
+				return dfEnd.format(df2.parse(date));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return date;
+	}
+	
+	@Reference
+	private JSONFactory _jsonFactory;
 
 }

@@ -14,13 +14,18 @@
 
 package com.liferay.portal.search.web.internal.custom.filter.portlet.action;
 
+import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.portlet.ConfigurationAction;
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
 import com.liferay.portal.search.web.internal.custom.filter.constants.CustomFilterPortletKeys;
 
+import javax.portlet.PortletConfig;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Igor Nazar
@@ -38,5 +43,19 @@ public class CustomFilterPortletConfigurationAction
 	public String getJspPath(HttpServletRequest request) {
 		return "/custom/filter/configuration.jsp";
 	}
+
+	@Override
+	public void include(
+			PortletConfig portletConfig, HttpServletRequest request,
+			HttpServletResponse response)
+		throws Exception {
+
+		request.setAttribute("jsonFactory", _jsonFactory);
+
+		super.include(portletConfig, request, response);
+	}
+
+	@Reference
+	private JSONFactory _jsonFactory;
 
 }

@@ -14,6 +14,9 @@
 
 package com.liferay.portal.search.web.internal.custom.filter.portlet;
 
+import com.liferay.portal.search.web.internal.custom.filter.builder.CustomDTO;
+
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,16 +25,34 @@ import java.util.Optional;
  */
 public interface CustomFilterPortletPreferences {
 
+	public static final String PREFERENCE_KEY_COMBO_VALUES = "comboValues";
+
+	public static final String PREFERENCE_KEY_DATE_VALUE = "dateValue";
+
 	public static final String PREFERENCE_KEY_FILTER_FIELD = "filterField";
 
 	public static final String PREFERENCE_KEY_FILTER_VALUE = "filterValue";
 
+	public static final String PREFERENCE_KEY_SELECTED_VALUE = "selectedValue";
+
+	public List<CustomDTO> getComboValues();
+
+	public String getDateValue();
+
+	public String getFilterField();
+
 	public Optional<String> getFilterFieldOptional();
 
-	public String getFilterFieldString();
+	public String getFilterType();
+
+	public String getFilterValue();
 
 	public Optional<String> getFilterValueOptional();
 
-	public String getFilterValueString();
+	public String getSelectedValue();
+
+	public boolean isDisplay(String value);
+
+	public List<CustomDTO> loadFields();
 
 }

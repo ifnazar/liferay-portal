@@ -45,6 +45,8 @@ import com.liferay.portal.search.engine.adapter.search.CountSearchRequest;
 import com.liferay.portal.search.engine.adapter.search.CountSearchResponse;
 import com.liferay.portal.search.engine.adapter.search.SearchSearchRequest;
 import com.liferay.portal.search.engine.adapter.search.SearchSearchResponse;
+import com.liferay.portal.search.filter.DateRangeFilterBuilder;
+import com.liferay.portal.search.filter.FilterBuilders;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -341,6 +343,9 @@ public class ElasticsearchIndexSearcher extends BaseIndexSearcher {
 	}
 
 	@Reference
+	private FilterBuilders _filterBuilders;
+	
+	@Reference
 	protected IndexNameBuilder indexNameBuilder;
 
 	@Reference
@@ -367,7 +372,24 @@ public class ElasticsearchIndexSearcher extends BaseIndexSearcher {
 
 				final String value = entry.getValue();
 
-				preBooleanFilter.addTerm(field, value);
+				String [] dateValues = null;
+				
+				if(value.contains(",")) {
+					dateValues = value.split(",");					
+				}
+				
+				if(dateValues != null) {		
+					DateRangeFilterBuilder dateRangeFilterBuilder =
+						_filterBuilders.dateRangeFilterBuilder();
+					
+					dateRangeFilterBuilder.setFieldName(field);
+					
+					dateRangeFilterBuilder.setFrom(dateValues[0]);													
+					dateRangeFilterBuilder.setTo(dateValues[1]);
+					preBooleanFilter.add(dateRangeFilterBuilder.build());
+				}else {
+					preBooleanFilter.addTerm(field, value);
+				}							
 			}
 		}
 	}
