@@ -14,6 +14,10 @@
 						'liferay-search-facet-util': {
 							path: 'facet_util.js',
 							requires: []
+						},						
+						'liferay-search-filter-util': {
+							path: 'filter_util.js',
+							requires: []
 						},
 						'liferay-search-modified-facet': {
 							path: 'modified_facet.js',

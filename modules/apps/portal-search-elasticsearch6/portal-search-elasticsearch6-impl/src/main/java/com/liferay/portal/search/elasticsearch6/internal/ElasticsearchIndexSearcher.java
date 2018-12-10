@@ -380,7 +380,7 @@ public class ElasticsearchIndexSearcher extends BaseIndexSearcher {
 				
 				if(dateValues != null) {		
 					DateRangeFilterBuilder dateRangeFilterBuilder =
-						_filterBuilders.dateRangeFilterBuilder();
+						_filterBuilders.dateRangeFilterBuilder();						
 					
 					dateRangeFilterBuilder.setFieldName(field);
 					
@@ -388,7 +388,7 @@ public class ElasticsearchIndexSearcher extends BaseIndexSearcher {
 					dateRangeFilterBuilder.setTo(dateValues[1]);
 					preBooleanFilter.add(dateRangeFilterBuilder.build());
 				}else {
-					preBooleanFilter.addTerm(field, value);
+					preBooleanFilter.addRequiredTerm(field, value);									
 				}							
 			}
 		}

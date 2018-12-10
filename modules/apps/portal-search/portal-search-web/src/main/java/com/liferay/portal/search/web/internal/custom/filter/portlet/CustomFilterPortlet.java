@@ -14,14 +14,11 @@
 
 package com.liferay.portal.search.web.internal.custom.filter.portlet;
 
-import com.liferay.portal.kernel.json.JSONFactory;
-import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
-import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.search.web.internal.custom.filter.constants.CustomFilterPortletKeys;
-import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchRequest;
-
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.portlet.Portlet;
 import javax.portlet.PortletException;
@@ -30,6 +27,19 @@ import javax.portlet.RenderResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.search.web.internal.custom.facet.portlet.CustomFacetPortletPreferences;
+import com.liferay.portal.search.web.internal.custom.filter.constants.CustomFilterPortletKeys;
+import com.liferay.portal.search.web.internal.custom.filter.display.context.CustomFilterDisplayBuilder;
+import com.liferay.portal.search.web.internal.custom.filter.display.context.CustomFilterDisplayContext;
+import com.liferay.portal.search.web.internal.util.SearchOptionalUtil;
+import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchRequest;
+import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchResponse;
 
 /**
  * @author Igor Nazar
@@ -67,14 +77,96 @@ public class CustomFilterPortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
-		portletSharedSearchRequest.search(renderRequest);
+		//portletSharedSearchRequest.search(renderRequest);
 
+		PortletSharedSearchResponse portletSharedSearchResponse =
+			portletSharedSearchRequest.search(renderRequest);
+		
+		CustomFilterDisplayContext customFilterDisplayContext =
+			buildDisplayContext(portletSharedSearchResponse, renderRequest);
+		
 		renderRequest.setAttribute(
-			WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
+			WebKeys.PORTLET_DISPLAY_CONTEXT, customFilterDisplayContext);
+		
+		if (customFilterDisplayContext.isInvisible()) {
+			renderRequest.setAttribute(
+				WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
+		}
 
 		super.render(renderRequest, renderResponse);
 	}
 
+	protected CustomFilterDisplayContext buildDisplayContext(
+		PortletSharedSearchResponse portletSharedSearchResponse,
+		RenderRequest renderRequest) {
+
+		CustomFilterPortletPreferences customFilterPortletPreferences =
+			new CustomFilterPortletPreferencesImpl(
+				portletSharedSearchResponse.getPortletPreferences(
+					renderRequest), _jsonFactory);
+
+		CustomFilterDisplayBuilder customFilterDisplayBuilder =
+			new CustomFilterDisplayBuilder();
+
+		SearchOptionalUtil.copy(
+			customFilterPortletPreferences::getCustomHeadingOptional,
+			customFilterDisplayBuilder::setCustomDisplayCaption);
+		
+		customFilterDisplayBuilder.setIsInvisible(
+			customFilterPortletPreferences.isInvisible());	
+		customFilterDisplayBuilder.setParameterValue(
+			customFilterPortletPreferences.getFilterValue());
+		customFilterDisplayBuilder.setParameterName(
+			customFilterPortletPreferences.getFilterField());
+		
+		String parameterName = getParameterName(customFilterPortletPreferences);
+
+		customFilterDisplayBuilder.setParameterName(parameterName);
+
+		SearchOptionalUtil.copy(
+			() -> getParameterValuesOptional(
+				parameterName, portletSharedSearchResponse, renderRequest),
+			customFilterDisplayBuilder::setParameterValues);
+
+		CustomFilterDisplayContext displayContext = customFilterDisplayBuilder.build();
+
+		return displayContext;
+	}
+
+	protected String getAggregationName(
+		CustomFacetPortletPreferences customFacetPortletPreferences,
+		String portletId) {
+
+		return customFacetPortletPreferences.getAggregationFieldString() +
+			StringPool.PERIOD + portletId;
+	}
+
+	protected String getParameterName(
+		CustomFilterPortletPreferences customFilterPortletPreferences) {
+
+		Optional<String> optional = Stream.of(
+			customFilterPortletPreferences.getCustomParameterNameOptional()
+		).filter(
+			Optional::isPresent
+		).map(
+			Optional::get
+		).findFirst();
+
+		return optional.orElse("customfield");
+	}
+
+	protected Optional<List<String>> getParameterValuesOptional(
+		String parameterName,
+		PortletSharedSearchResponse portletSharedSearchResponse,
+		RenderRequest renderRequest) {
+
+		Optional<String[]> optional =
+			portletSharedSearchResponse.getParameterValues(
+				parameterName, renderRequest);
+
+		return optional.map(Arrays::asList);
+	}
+	
 	protected String getPortletId(RenderRequest renderRequest) {
 		return _portal.getPortletId(renderRequest);
 	}

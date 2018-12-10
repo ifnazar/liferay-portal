@@ -14,16 +14,6 @@
 
 package com.liferay.portal.search.web.internal.custom.filter.portlet.shared.search;
 
-import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.json.JSONFactory;
-import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.search.filter.DateRangeFilterBuilder;
-import com.liferay.portal.search.web.internal.custom.filter.constants.CustomFilterPortletKeys;
-import com.liferay.portal.search.web.internal.custom.filter.portlet.CustomFilterPortletPreferences;
-import com.liferay.portal.search.web.internal.custom.filter.portlet.CustomFilterPortletPreferencesImpl;
-import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchContributor;
-import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchSettings;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -34,6 +24,15 @@ import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.search.web.internal.custom.filter.constants.CustomFilterPortletKeys;
+import com.liferay.portal.search.web.internal.custom.filter.portlet.CustomFilterPortletPreferences;
+import com.liferay.portal.search.web.internal.custom.filter.portlet.CustomFilterPortletPreferencesImpl;
+import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchContributor;
+import com.liferay.portal.search.web.portlet.shared.search.PortletSharedSearchSettings;
 
 /**
  * @author Igor Nazar
@@ -59,33 +58,60 @@ public class CustomFilterPortletSharedSearchContributor
 		Optional<String> fieldFieldOptional =
 			customFilterPortletPreferences.getFilterFieldOptional();
 
-		String fieldValueOptional =
-			customFilterPortletPreferences.getFilterValue();
+		final String fieldValueOptional = getVaules(portletSharedSearchSettings, customFilterPortletPreferences);
 
 		String selectedValue =
 			customFilterPortletPreferences.getSelectedValue();
-				
-		String dateValue = customFilterPortletPreferences.getDateValue();
-				
+
+		//String dateValue = customFilterPortletPreferences.getDateValue();
+	
+
+		
 		fieldFieldOptional.ifPresent(
 			fieldField -> {
 				buildFilter(
-					fieldField, fieldValueOptional, selectedValue, dateValue,
+					fieldField, fieldValueOptional, selectedValue,
 					customFilterPortletPreferences,
 					portletSharedSearchSettings);
 			});
 	}
 
+	private String getVaules(PortletSharedSearchSettings portletSharedSearchSettings, CustomFilterPortletPreferences customFilterPortletPreferences) {
+		String zz = "";
+		if (customFilterPortletPreferences.getFilterField() != null) {
+			portletSharedSearchSettings.getParameterValues("xxxxxxx");
+			String parameterName = customFilterPortletPreferences.getCustomParameterName();
+			Optional<String[]> aa = portletSharedSearchSettings.getParameterValues(parameterName);
+			if (aa != null && aa.isPresent()) {
+			String[] bb = aa.get();
+			
+			
+			for (String string : bb) {
+
+				if (!zz.equals("")) {
+						zz += ",";
+				}
+				zz += string;
+				 
+			}
+			}
+			if (zz != "") 
+				return zz;
+
+		}
+		
+		return customFilterPortletPreferences.getFilterValue();
+	}
+
 	protected void buildFilter(
-		String filterField, String filterValue, String selectedValue,
-		String dateValue,
+		String filterField, String filterValue, String selectedValue,		
 		CustomFilterPortletPreferences customFilterPortletPreferences,
 		PortletSharedSearchSettings portletSharedSearchSettings) {
 
 		SearchContext searchContext =
 			portletSharedSearchSettings.getSearchContext();
 
-		filterField = selectedValue;
+		//filterField = selectedValue;
 
 		@SuppressWarnings("unchecked")
 		HashMap<String, String> customFilterMap =
@@ -98,16 +124,16 @@ public class CustomFilterPortletSharedSearchContributor
 
 		String formattedDateStart = null;
 		String formattedDateEnd = null;
-		
-		if(dateValue != null && !dateValue.trim().equals("")) {			
-			formattedDateStart = _formatDate(dateValue, true);
-			formattedDateEnd = _formatDate(dateValue, false);	
-			customFilterMap.put(filterField, 
-				formattedDateStart + "," + formattedDateEnd);						
-		}else if (filterValue != null && filterValue.trim().equals("") ) {
-			customFilterMap.put(filterField, filterValue);
-		}
-									
+
+//		if (dateValue != null && !dateValue.trim().equals("")) {
+//			formattedDateStart = _formatDate(dateValue, true);
+//			formattedDateEnd = _formatDate(dateValue, false);
+//			customFilterMap.put(filterField,
+//				formattedDateStart + "," + formattedDateEnd);
+//		}else if (filterValue != null && filterValue.trim().equals("")) {
+
+//		}
+		customFilterMap.put(filterField, filterValue);
 		searchContext.setAttribute("customFilterWidget", customFilterMap);
 	}
 
@@ -138,24 +164,27 @@ public class CustomFilterPortletSharedSearchContributor
 
 		return optional.orElse("customfield");
 	}
-	
+
 	private String _formatDate(String date, boolean period) {
 		try {
 			DateFormat df2 = new SimpleDateFormat("MM/dd/yyyy");
-			
-			if(period) {
+
+			if (period) {
 				DateFormat dfStart = new SimpleDateFormat("yyyyMMdd000000");
+
 				return dfStart.format(df2.parse(date));
 			}else {
 				DateFormat dfEnd = new SimpleDateFormat("yyyyMMdd235959");
+
 				return dfEnd.format(df2.parse(date));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
 		return date;
 	}
-	
+
 	@Reference
 	private JSONFactory _jsonFactory;
 

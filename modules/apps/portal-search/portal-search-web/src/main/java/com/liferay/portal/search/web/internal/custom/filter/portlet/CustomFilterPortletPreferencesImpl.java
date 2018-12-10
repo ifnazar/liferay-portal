@@ -148,25 +148,15 @@ public class CustomFilterPortletPreferencesImpl
 				CustomDTO dto = new CustomDTO(key, type);
 
 				result.add(dto);
-			}		
-			
+			}
+
 			orderList(result);
-			
+
 			return result;
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	private void orderList(List<CustomDTO> result) {
-		Collections.sort(result, new Comparator<CustomDTO>() {	    
-			@Override
-			public int compare(CustomDTO o1, CustomDTO o2) {			
-				 return  o1.getField().compareTo(o2.getField());
-			}
-	    });
-		
 	}
 
 	private String _getResourceAsString(Class<?> clazz, String resourceName) {
@@ -181,7 +171,50 @@ public class CustomFilterPortletPreferencesImpl
 		}
 	}
 
+	private void orderList(List<CustomDTO> result) {
+		Collections.sort(result, new Comparator<CustomDTO>() {
+			@Override
+			public int compare(CustomDTO o1, CustomDTO o2) {
+				return o1.getField().compareTo(o2.getField());
+			}
+		});
+	}
+
 	private final JSONFactory _jsonFactory;
 	private final PortletPreferencesHelper _portletPreferencesHelper;
+	
+	
+
+	@Override
+	public String getCustomParameterName() {
+		Optional<String> optional = getCustomParameterNameOptional();
+
+		return optional.orElse(StringPool.BLANK);
+	}
+
+	@Override
+	public Optional<String> getCustomParameterNameOptional() {
+		return _portletPreferencesHelper.getString(
+			CustomFilterPortletPreferences.PREFERENCE_KEY_CUSTOM_PARAMETER_NAME);
+	}
+
+	@Override
+	public boolean isInvisible() {
+		return _portletPreferencesHelper.getBoolean(
+			CustomFilterPortletPreferences.PREFERENCE_KEY_IS_INVISIBLE, false);			
+	}
+	
+	@Override
+	public String getCustomHeading() {
+		Optional<String> optional = getCustomHeadingOptional();
+
+		return optional.orElse(StringPool.BLANK);
+	}
+
+	@Override
+	public Optional<String> getCustomHeadingOptional() {
+		return _portletPreferencesHelper.getString(
+			CustomFilterPortletPreferences.PREFERENCE_KEY_CUSTOM_HEADING);
+	}	
 
 }

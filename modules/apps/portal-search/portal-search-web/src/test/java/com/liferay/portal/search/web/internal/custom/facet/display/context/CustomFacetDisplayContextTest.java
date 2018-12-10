@@ -177,8 +177,8 @@ public class CustomFacetDisplayContextTest {
 		String customDisplayCaption, String fieldToAggregate,
 		String parameterValue) {
 
-		CustomFacetDisplayBuilder customFacetDisplayBuilder =
-			new CustomFacetDisplayBuilder();
+		CustomFilterDisplayBuilder customFacetDisplayBuilder =
+			new CustomFilterDisplayBuilder();
 
 		customFacetDisplayBuilder.setFacet(_facet);
 		customFacetDisplayBuilder.setParameterName("custom");

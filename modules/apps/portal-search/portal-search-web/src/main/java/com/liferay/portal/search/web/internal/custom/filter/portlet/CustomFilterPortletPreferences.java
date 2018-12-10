@@ -32,8 +32,15 @@ public interface CustomFilterPortletPreferences {
 	public static final String PREFERENCE_KEY_FILTER_FIELD = "filterField";
 
 	public static final String PREFERENCE_KEY_FILTER_VALUE = "filterValue";
+	
+	public static final String PREFERENCE_KEY_CUSTOM_HEADING = "customHeading";
+	
+	public static final String PREFERENCE_KEY_CUSTOM_PARAMETER_NAME = 
+		"customParameterName";
 
 	public static final String PREFERENCE_KEY_SELECTED_VALUE = "selectedValue";
+	
+	public static final String PREFERENCE_KEY_IS_INVISIBLE = "isInvisible";
 
 	public List<CustomDTO> getComboValues();
 
@@ -46,6 +53,16 @@ public interface CustomFilterPortletPreferences {
 	public String getFilterType();
 
 	public String getFilterValue();
+	
+	public Optional<String> getCustomHeadingOptional();
+	
+	public String getCustomHeading();
+	
+	public Optional<String> getCustomParameterNameOptional();
+	
+	public String getCustomParameterName();
+	
+	public boolean isInvisible();
 
 	public Optional<String> getFilterValueOptional();
 

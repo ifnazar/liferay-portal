@@ -61,7 +61,13 @@ Calendar today = Calendar.getInstance();
 		<liferay-frontend:fieldset-group>
 			<aui:input helpMessage="filter-field-help" label="filter-field" name="<%= PortletPreferencesJspUtil.getInputName(CustomFilterPortletPreferences.PREFERENCE_KEY_FILTER_FIELD) %>" value="<%= customFilterPortletPreferences.getFilterField() %>" />
 
+			<aui:input helpMessage="filter-value-help" label="Custom Heading" name="<%= PortletPreferencesJspUtil.getInputName(CustomFilterPortletPreferences.PREFERENCE_KEY_CUSTOM_HEADING) %>" value="<%= customFilterPortletPreferences.getCustomHeading() %>" />
+
+			<aui:input helpMessage="filter-value-help" label="Custom Parameter Name" name="<%= PortletPreferencesJspUtil.getInputName(CustomFilterPortletPreferences.PREFERENCE_KEY_CUSTOM_PARAMETER_NAME) %>" value="<%= customFilterPortletPreferences.getCustomParameterName() %>" />
+
 			<aui:input helpMessage="filter-value-help" label="filter-value" name="<%= PortletPreferencesJspUtil.getInputName(CustomFilterPortletPreferences.PREFERENCE_KEY_FILTER_VALUE) %>" value="<%= customFilterPortletPreferences.getFilterValue() %>" />
+
+			<aui:input helpMessage="filter-value-help" label="Invisible" name="<%= PortletPreferencesJspUtil.getInputName(CustomFilterPortletPreferences.PREFERENCE_KEY_IS_INVISIBLE) %>" type="checkbox" value="<%= customFilterPortletPreferences.isInvisible() %>" />
 
 			<aui:select label="Combo" name="<%= PortletPreferencesJspUtil.getInputName(CustomFilterPortletPreferences.PREFERENCE_KEY_SELECTED_VALUE) %>" onChange="entityChanged(this);">
 
@@ -79,8 +85,8 @@ Calendar today = Calendar.getInstance();
 
 			</aui:select>
 
-			<div class="checkbox_filterable_string">
-				<aui:input helpMessage="filter-value-help" label="filter-value" name="xx1" value="<%= customFilterPortletPreferences.getFilterValue() %>" />
+			<div class="checkbox_filterable_string" id="x1">
+				<aui:input helpMessage="filter-value-help" id="xx1" label="filter-value" name="xx1" value="<%= customFilterPortletPreferences.getFilterValue() %>" />
 			</div>
 
 			<div class="checkbox_filterable_date hide">
@@ -106,10 +112,12 @@ Calendar today = Calendar.getInstance();
 	</liferay-frontend:edit-form-footer>
 </liferay-frontend:edit-form>
 
+<!-- 
 <aui:script>
 	var checkboxFilterableString = $('.checkbox_filterable_string');
 	var checkboxFilterableDate = $('.checkbox_filterable_date');
 	var hidden = 'hide';
+	console.log(inputValue);
 
 	function changeFieldType(type) {
 		checkboxFilterableString.addClass(hidden);
@@ -122,6 +130,7 @@ Calendar today = Calendar.getInstance();
 		if (type === 'date') {
 			checkboxFilterableDate.removeClass(hidden);
 		}
+		cleanInput();
 	}
 
 	function entityChanged(select) {
@@ -135,5 +144,12 @@ Calendar today = Calendar.getInstance();
 		changeFieldType('<%= initialFieldType %>');
 	}
 
+	function cleanInput() {
+		var inputValue = $('[id*=xx1]').val();
+		inputValue = '';
+	}
+
 	main();
 </aui:script>
+
+ -->
