@@ -84,6 +84,7 @@ public class UserModelResourcePermission
 		return null;
 	}
 
-	@Reference protected UserPermission userPermission;
+	@Reference
+	protected UserPermission userPermission;
 
 }
