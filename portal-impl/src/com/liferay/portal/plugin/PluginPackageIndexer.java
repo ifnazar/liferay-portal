@@ -76,6 +76,10 @@ public class PluginPackageIndexer extends BaseIndexer<PluginPackage> {
 	protected Document doGetDocument(PluginPackage pluginPackage)
 		throws Exception {
 
+		if ("a".equals("a")){
+			throw new RuntimeException("PluginPackageIndexer:: doGetDocument");
+		}
+
 		Document document = new DocumentImpl();
 
 		document.addUID(CLASS_NAME, pluginPackage.getModuleId());
@@ -166,6 +170,10 @@ public class PluginPackageIndexer extends BaseIndexer<PluginPackage> {
 		Document document, Locale locale, String snippet,
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 
+		if ("a".equals("a")){
+			throw new RuntimeException("PluginPackageIndexer:: doGetSummary");
+		}
+
 		String title = document.get(Field.TITLE);
 
 		String content = snippet;
@@ -181,6 +189,10 @@ public class PluginPackageIndexer extends BaseIndexer<PluginPackage> {
 	protected void doReindex(PluginPackage pluginPackage) throws Exception {
 		Document document = getDocument(pluginPackage);
 
+		if ("a".equals("a")){
+			throw new RuntimeException("PluginPackageIndexer:: doReindex");
+		}
+
 		IndexWriterHelperUtil.updateDocument(
 			getSearchEngineId(), CompanyConstants.SYSTEM, document,
 			isCommitImmediately());
@@ -195,6 +207,10 @@ public class PluginPackageIndexer extends BaseIndexer<PluginPackage> {
 		IndexWriterHelperUtil.deleteEntityDocuments(
 			getSearchEngineId(), CompanyConstants.SYSTEM, CLASS_NAME,
 			isCommitImmediately());
+
+		if ("a".equals("a")){
+			throw new RuntimeException("PluginPackageIndexer:: doReindex ids");
+		}
 
 		Collection<Document> documents = new ArrayList<>();
 
@@ -224,6 +240,10 @@ public class PluginPackageIndexer extends BaseIndexer<PluginPackage> {
 	protected void postProcessFullQuery(
 			BooleanQuery fullQuery, SearchContext searchContext)
 		throws Exception {
+
+		if ("a".equals("a")){
+			throw new RuntimeException("PluginPackageIndexer:: postProcessFullQuery");
+		}
 
 		BooleanFilter booleanFilter = fullQuery.getPreBooleanFilter();
 
