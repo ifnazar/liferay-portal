@@ -34,6 +34,7 @@ import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 
@@ -53,13 +54,17 @@ public class DDMFormFixture {
 	}
 
 	public DDMFormInstance addDDMFormInstance() throws Exception {
+		return addDDMFormInstance(TestPropsValues.getUserId());
+	}
+
+	public DDMFormInstance addDDMFormInstance(long userId) throws Exception {
 		DDMStructure ddmStructure = _addDDMStructure();
 
 		DDMFormInstanceTestHelper ddmFormInstanceTestHelper =
 			new DDMFormInstanceTestHelper(_group);
 
 		DDMFormInstance formInstance =
-			ddmFormInstanceTestHelper.addDDMFormInstance(ddmStructure);
+			ddmFormInstanceTestHelper.addDDMFormInstance(userId, ddmStructure);
 
 		_ddmFormInstances.add(formInstance);
 
