@@ -34,6 +34,7 @@ import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestHelper;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 
@@ -65,13 +66,17 @@ public class DDMFormFixture {
 	}
 
 	protected DDMFormInstance addDDMFormInstance() throws Exception {
+		return addDDMFormInstance(TestPropsValues.getUserId());
+	}
+
+	protected DDMFormInstance addDDMFormInstance(long userId) throws Exception {
 		DDMStructure ddmStructure = addDDMStructure();
 
 		DDMFormInstanceTestHelper ddmFormInstanceTestHelper =
 			new DDMFormInstanceTestHelper(_group);
 
 		DDMFormInstance formInstance =
-			ddmFormInstanceTestHelper.addDDMFormInstance(ddmStructure);
+			ddmFormInstanceTestHelper.addDDMFormInstance(userId, ddmStructure);
 
 		_ddmFormInstances.add(formInstance);
 
@@ -190,12 +195,16 @@ public class DDMFormFixture {
 			DDMFormInstanceRecordLocalServiceUtil.deleteFormInstanceRecord(
 				ddmFormInstanceRecord);
 		}
+
+		_ddmFormInstanceRecords.clear();
 	}
 
 	protected void deleteALLDDMStructures() {
 		for (DDMStructure ddmStructure : _ddmStructures) {
 			DDMStructureLocalServiceUtil.deleteDDMStructure(ddmStructure);
 		}
+
+		_ddmFormInstanceRecords.clear();
 	}
 
 	protected void deleteDDMFormInstances() {
@@ -203,6 +212,8 @@ public class DDMFormFixture {
 			DDMFormInstanceLocalServiceUtil.deleteDDMFormInstance(
 				ddmFormInstance);
 		}
+
+		_ddmFormInstances.clear();
 	}
 
 	private final List<DDMFormInstanceRecord> _ddmFormInstanceRecords =
