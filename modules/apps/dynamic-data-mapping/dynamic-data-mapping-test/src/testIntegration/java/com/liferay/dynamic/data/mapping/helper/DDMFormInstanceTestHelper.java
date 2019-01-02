@@ -111,6 +111,13 @@ public class DDMFormInstanceTestHelper {
 	public DDMFormInstance addDDMFormInstance(DDMStructure ddmStructure)
 		throws Exception {
 
+		return addDDMFormInstance(TestPropsValues.getUserId(), ddmStructure);
+	}
+
+	public DDMFormInstance addDDMFormInstance(
+			long userId, DDMStructure ddmStructure)
+		throws PortalException {
+
 		Map<Locale, String> nameMap = new HashMap<>();
 
 		nameMap.put(LocaleUtil.US, RandomTestUtil.randomString());
@@ -128,9 +135,8 @@ public class DDMFormInstanceTestHelper {
 			DDMFormValuesTestUtil.createDDMFormValues(settingsDDMForm);
 
 		return DDMFormInstanceLocalServiceUtil.addFormInstance(
-			TestPropsValues.getUserId(), _group.getGroupId(),
-			ddmStructure.getStructureId(), nameMap, descriptionMap,
-			settingsDDMFormValues, serviceContext);
+			userId, _group.getGroupId(), ddmStructure.getStructureId(), nameMap,
+			descriptionMap, settingsDDMFormValues, serviceContext);
 	}
 
 	public DDMFormInstance updateFormInstance(
