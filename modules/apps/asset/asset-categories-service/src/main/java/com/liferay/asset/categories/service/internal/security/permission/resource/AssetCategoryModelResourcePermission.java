@@ -24,7 +24,6 @@ import com.liferay.portlet.asset.service.permission.AssetCategoryPermission;
 import org.osgi.service.component.annotations.Component;
 
 /**
- * @author Istvan Andras Dezsi
  * @author Luan Maoski
  * @author Lucas Marques
  */
