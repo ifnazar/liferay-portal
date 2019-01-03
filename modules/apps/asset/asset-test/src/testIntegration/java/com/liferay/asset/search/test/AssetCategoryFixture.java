@@ -17,15 +17,17 @@ package com.liferay.asset.search.test;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetCategoryServiceUtil;
-import com.liferay.asset.kernel.service.AssetVocabularyServiceUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Luan Maoski
@@ -38,17 +40,21 @@ public class AssetCategoryFixture {
 	}
 
 	public AssetCategory createAssetCategory() throws Exception {
+		return createAssetCategory(RandomTestUtil.randomString());
+	}
+
+	public AssetCategory createAssetCategory(String title)
+		throws Exception, PortalException {
+
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(
 				_group.getGroupId(), getUserId());
 
 		AssetVocabulary assetVocabulary =
-			AssetVocabularyServiceUtil.addVocabulary(
-				serviceContext.getScopeGroupId(), RandomTestUtil.randomString(),
-				serviceContext);
+			_assetVocabularyFixture.createAssetVocabulary();
 
 		AssetCategory assetCategory = AssetCategoryServiceUtil.addCategory(
-			serviceContext.getScopeGroupId(), RandomTestUtil.randomString(),
+			serviceContext.getScopeGroupId(), title,
 			assetVocabulary.getVocabularyId(), serviceContext);
 
 		_assetCategories.add(assetCategory);
