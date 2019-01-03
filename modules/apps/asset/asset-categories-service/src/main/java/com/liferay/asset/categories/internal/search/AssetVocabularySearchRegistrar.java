@@ -27,7 +27,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * @author Istvan Andras Dezsi
  * @author Luan Maoski
  * @author Lucas Marques
  */
