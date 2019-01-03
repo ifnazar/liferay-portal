@@ -25,6 +25,8 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.search.test.util.IndexedFieldsFixture;
@@ -36,8 +38,10 @@ import com.liferay.users.admin.test.util.search.UserSearchFixture;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -65,17 +69,28 @@ public class AssetVocabularyIndexerIndexedFieldsTest {
 		setUpIndexedFieldsFixture();
 		setUpAssetVocabularyIndexerFixture();
 		setUpAssetVocabularyFixture();
+
+		defaultLocale = LocaleThreadLocal.getDefaultLocale();
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		LocaleThreadLocal.setDefaultLocale(defaultLocale);
 	}
 
 	@Test
 	public void testIndexedFields() throws Exception {
-		AssetVocabulary assetVocabulary =
-			assetVocabularyFixture.createAssetVocabulary();
+		Locale locale = LocaleUtil.JAPAN;
 
-		String searchTerm = assetVocabulary.getName();
+		setTestLocale(locale);
+
+		AssetVocabulary assetVocabulary =
+			assetVocabularyFixture.createAssetVocabulary("新しい商品");
+
+		String searchTerm = "新しい";
 
 		Document document = assetVocabularyIndexerFixture.searchOnlyOne(
-			searchTerm);
+			searchTerm, locale);
 
 		indexedFieldsFixture.postProcessDocument(document);
 
@@ -83,8 +98,12 @@ public class AssetVocabularyIndexerIndexedFieldsTest {
 			_expectedFieldValues(assetVocabulary), document, searchTerm);
 	}
 
-	protected void setUpAssetVocabularyFixture() throws Exception {
+	protected void setTestLocale(Locale locale) throws Exception {
+		assetVocabularyFixture.updateDisplaySettings(locale);
+		LocaleThreadLocal.setDefaultLocale(locale);
+	}
 
+	protected void setUpAssetVocabularyFixture() throws Exception {
 		assetVocabularyFixture = new AssetVocabularyFixture(group);
 
 		_assetVocabularies = assetVocabularyFixture.getAssetVocabularies();
@@ -113,6 +132,7 @@ public class AssetVocabularyIndexerIndexedFieldsTest {
 
 	protected AssetVocabularyFixture assetVocabularyFixture;
 	protected IndexerFixture<AssetVocabulary> assetVocabularyIndexerFixture;
+	protected Locale defaultLocale;
 	protected Group group;
 	protected IndexedFieldsFixture indexedFieldsFixture;
 
@@ -152,7 +172,7 @@ public class AssetVocabularyIndexerIndexedFieldsTest {
 
 		map.put(
 			"name_sortable", StringUtil.lowerCase(assetVocabulary.getName()));
-		map.put("title_en_US", assetVocabulary.getName());
+		map.put("title_ja_JP", assetVocabulary.getName());
 		map.put(
 			"title_sortable", StringUtil.lowerCase(assetVocabulary.getName()));
 

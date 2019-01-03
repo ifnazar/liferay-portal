@@ -17,15 +17,15 @@ package com.liferay.asset.search.test;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetVocabularyServiceUtil;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.service.test.ServiceTestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Luan Maoski
@@ -38,14 +38,19 @@ public class AssetVocabularyFixture {
 	}
 
 	public AssetVocabulary createAssetVocabulary() throws Exception {
+		return createAssetVocabulary(RandomTestUtil.randomString());
+	}
+
+	public AssetVocabulary createAssetVocabulary(String title)
+		throws Exception {
+
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(
 				_group.getGroupId(), getUserId());
 
 		AssetVocabulary assetVocabulary =
 			AssetVocabularyServiceUtil.addVocabulary(
-				serviceContext.getScopeGroupId(), RandomTestUtil.randomString(),
-				serviceContext);
+				serviceContext.getScopeGroupId(), title, serviceContext);
 
 		_assetVocabularies.add(assetVocabulary);
 
@@ -55,7 +60,6 @@ public class AssetVocabularyFixture {
 	public List<AssetVocabulary> getAssetVocabularies() {
 		return _assetVocabularies;
 	}
-
 
 	public void updateDisplaySettings(Locale locale) throws Exception {
 		Group group = GroupTestUtil.updateDisplaySettings(
