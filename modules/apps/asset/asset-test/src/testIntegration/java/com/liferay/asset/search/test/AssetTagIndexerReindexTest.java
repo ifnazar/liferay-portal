@@ -19,14 +19,12 @@ import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Document;
-import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
-import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.search.test.util.IndexerFixture;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -34,7 +32,6 @@ import com.liferay.portal.test.rule.PermissionCheckerTestRule;
 import com.liferay.users.admin.test.util.search.UserSearchFixture;
 
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -66,34 +63,25 @@ public class AssetTagIndexerReindexTest {
 
 	@Test
 	public void testReindexing() throws Exception {
-		Locale locale = LocaleUtil.US;
-
 		AssetTag assetTag = assetTagFixture.createAssetTag();
 
-		String searchTerm = assetTag.getName();
+		String searchTerm = assetTag.getUserName();
 
-		assetTagFixture.updateDisplaySettings(locale);
+		assetTagIndexerFixture.searchOnlyOne(searchTerm);
 
-		assetTagIndexerFixture.searchOnlyOne(searchTerm, locale, Field.NAME);
-
-		Document document = assetTagIndexerFixture.searchOnlyOne(
-			searchTerm, locale, Field.NAME);
+		Document document = assetTagIndexerFixture.searchOnlyOne(searchTerm);
 
 		assetTagIndexerFixture.deleteDocument(document);
 
-		assetTagIndexerFixture.searchNoOne(searchTerm, locale, Field.NAME);
+		assetTagIndexerFixture.searchNoOne(searchTerm);
 
 		assetTagIndexerFixture.reindex(assetTag.getCompanyId());
 
-		assetTagIndexerFixture.searchOnlyOne(searchTerm, locale, Field.NAME);
+		assetTagIndexerFixture.searchOnlyOne(searchTerm);
 	}
 
 	protected void setUpAssetTagFixture() throws Exception {
-		assetTagFixture = new AssetTagFixture();
-
-		assetTagFixture.setUp();
-
-		assetTagFixture.setGroup(group);
+		assetTagFixture = new AssetTagFixture(group, user);
 
 		_assetTags = assetTagFixture.getAssetTags();
 	}
@@ -107,14 +95,16 @@ public class AssetTagIndexerReindexTest {
 
 		userSearchFixture.setUp();
 
+		group = userSearchFixture.addGroup();
+
+		user = userSearchFixture.addUser(RandomTestUtil.randomString(), group);
+
 		_groups = userSearchFixture.getGroups();
 		_users = userSearchFixture.getUsers();
-
-		group = userSearchFixture.addGroup();
 	}
 
 	protected AssetTagFixture assetTagFixture;
-	protected IndexerFixture assetTagIndexerFixture;
+	protected IndexerFixture<AssetTag> assetTagIndexerFixture;
 	protected Group group;
 
 	@Inject
@@ -123,6 +113,7 @@ public class AssetTagIndexerReindexTest {
 	@Inject
 	protected SearchEngineHelper searchEngineHelper;
 
+	protected User user;
 	protected UserSearchFixture userSearchFixture;
 
 	@DeleteAfterTestRun

@@ -20,12 +20,12 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.search.test.util.IndexedFieldsFixture;
@@ -72,24 +72,18 @@ public class AssetTagIndexerIndexedFieldsTest {
 	public void testIndexedFields() throws Exception {
 		AssetTag assetTag = assetTagFixture.createAssetTag();
 
-		String searchTerm = assetTag.getName();
+		String searchTerm = assetTag.getUserName();
 
-		Document document = assetTagIndexerFixture.searchOnlyOne(
-			searchTerm, Field.NAME);
+		Document document = assetTagIndexerFixture.searchOnlyOne(searchTerm);
 
 		indexedFieldsFixture.postProcessDocument(document);
 
-		Map<String, String> expected = _expectedFieldValues(assetTag);
-
-		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
+		FieldValuesAssert.assertFieldValues(
+			_expectedFieldValues(assetTag), document, searchTerm);
 	}
 
 	protected void setUpAssetTagFixture() throws Exception {
-		assetTagFixture = new AssetTagFixture();
-
-		assetTagFixture.setUp();
-
-		assetTagFixture.setGroup(group);
+		assetTagFixture = new AssetTagFixture(group, user);
 
 		_assetTags = assetTagFixture.getAssetTags();
 	}
@@ -108,14 +102,16 @@ public class AssetTagIndexerIndexedFieldsTest {
 
 		userSearchFixture.setUp();
 
+		group = userSearchFixture.addGroup();
+
+		user = userSearchFixture.addUser(RandomTestUtil.randomString(), group);
+
 		_groups = userSearchFixture.getGroups();
 		_users = userSearchFixture.getUsers();
-
-		group = userSearchFixture.addGroup();
 	}
 
 	protected AssetTagFixture assetTagFixture;
-	protected IndexerFixture assetTagIndexerFixture;
+	protected IndexerFixture<AssetTag> assetTagIndexerFixture;
 	protected Group group;
 	protected IndexedFieldsFixture indexedFieldsFixture;
 
@@ -125,6 +121,7 @@ public class AssetTagIndexerIndexedFieldsTest {
 	@Inject
 	protected SearchEngineHelper searchEngineHelper;
 
+	protected User user;
 	protected UserSearchFixture userSearchFixture;
 
 	private Map<String, String> _expectedFieldValues(AssetTag assetTag)
@@ -132,31 +129,21 @@ public class AssetTagIndexerIndexedFieldsTest {
 
 		Map<String, String> map = new HashMap<>();
 
-		map.put(Field.ENTRY_CLASS_PK, String.valueOf(assetTag.getTagId()));
-		map.put(Field.ENTRY_CLASS_NAME, AssetTag.class.getName());
 		map.put(Field.COMPANY_ID, String.valueOf(assetTag.getCompanyId()));
-
+		map.put(Field.ENTRY_CLASS_NAME, AssetTag.class.getName());
+		map.put(Field.ENTRY_CLASS_PK, String.valueOf(assetTag.getTagId()));
 		map.put(Field.GROUP_ID, String.valueOf(assetTag.getGroupId()));
-
+		map.put(Field.NAME, assetTag.getName());
 		map.put(Field.SCOPE_GROUP_ID, String.valueOf(assetTag.getGroupId()));
+		map.put(Field.STAGING_GROUP, String.valueOf(group.isStagingGroup()));
+		map.put(Field.USER_ID, String.valueOf(assetTag.getUserId()));
+		map.put(Field.USER_NAME, StringUtil.lowerCase(assetTag.getUserName()));
 
 		map.put("assetCount", String.valueOf(assetTag.getAssetCount()));
-
 		map.put(
 			"assetCount_Number_sortable",
 			String.valueOf(assetTag.getAssetCount()));
-
-		map.put(
-			Field.STAGING_GROUP,
-			String.valueOf(assetTagFixture.getGroup().isStagingGroup()));
-
-		map.put(Field.NAME, assetTag.getName());
-
-		map.put(Field.NAME + "_String_sortable", assetTag.getName());
-
-		map.put(Field.USER_ID, String.valueOf(assetTag.getUserId()));
-
-		map.put(Field.USER_NAME, StringUtil.lowerCase(assetTag.getUserName()));
+		map.put("name_String_sortable", assetTag.getName());
 
 		indexedFieldsFixture.populateUID(
 			AssetTag.class.getName(), assetTag.getTagId(), map);
