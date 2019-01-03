@@ -16,7 +16,6 @@ package com.liferay.asset.tags.internal.search;
 
 import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
-import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.search.batch.BatchIndexingActionable;
 import com.liferay.portal.search.batch.DynamicQueryBatchIndexingActionableFactory;
 import com.liferay.portal.search.spi.model.index.contributor.ModelIndexerWriterContributor;
@@ -28,7 +27,6 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Luan Maoski
  * @author Lucas Marques
- * @author Pavel Savinov
  */
 @Component(
 	immediate = true,
@@ -45,10 +43,8 @@ public class AssetTagModelIndexWriterContributor
 
 		batchIndexingActionable.setPerformActionMethod(
 			(AssetTag assetTag) -> {
-				Document document =
-					modelIndexerWriterDocumentHelper.getDocument(assetTag);
-
-				batchIndexingActionable.addDocuments(document);
+				batchIndexingActionable.addDocuments(
+					modelIndexerWriterDocumentHelper.getDocument(assetTag));
 			});
 	}
 

@@ -23,7 +23,6 @@ import org.osgi.service.component.annotations.Component;
 /**
  * @author Luan Maoski
  * @author Lucas Marques
- * @author Pavel Savinov
  */
 @Component(
 	immediate = true,
