@@ -25,6 +25,8 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.search.test.util.IndexedFieldsFixture;
@@ -36,6 +38,7 @@ import com.liferay.users.admin.test.util.search.UserSearchFixture;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -69,18 +72,27 @@ public class AssetCategoryIndexerIndexedFieldsTest {
 
 	@Test
 	public void testIndexedFields() throws Exception {
-		AssetCategory assetCategory =
-			assetCategoryFixture.createAssetCategory();
+		Locale locale = LocaleUtil.JAPAN;
 
-		String searchTerm = assetCategory.getName();
+		setTestLocale(locale);
+
+		AssetCategory assetCategory = assetCategoryFixture.createAssetCategory(
+			"新しい商品");
+
+		String searchTerm = "新しい";
 
 		Document document = assetCategoryIndexerFixture.searchOnlyOne(
-			searchTerm);
+			searchTerm, locale);
 
 		indexedFieldsFixture.postProcessDocument(document);
 
 		FieldValuesAssert.assertFieldValues(
 			_expectedFieldValues(assetCategory), document, searchTerm);
+	}
+
+	protected void setTestLocale(Locale locale) throws Exception {
+		assetCategoryFixture.updateDisplaySettings(locale);
+		LocaleThreadLocal.setDefaultLocale(locale);
 	}
 
 	protected void setUpAssetCategoryFixture() throws Exception {
@@ -135,9 +147,6 @@ public class AssetCategoryIndexerIndexedFieldsTest {
 			Field.ASSET_CATEGORY_TITLE,
 			StringUtil.lowerCase(assetCategory.getName()));
 		map.put(
-			Field.ASSET_CATEGORY_TITLE + "_en_US",
-			StringUtil.lowerCase(assetCategory.getName()));
-		map.put(
 			Field.ASSET_VOCABULARY_ID,
 			String.valueOf(assetCategory.getVocabularyId()));
 		map.put(Field.COMPANY_ID, String.valueOf(assetCategory.getCompanyId()));
@@ -156,13 +165,17 @@ public class AssetCategoryIndexerIndexedFieldsTest {
 			Field.USER_NAME, StringUtil.lowerCase(assetCategory.getUserName()));
 
 		map.put(
+			"assetCategoryTitle_ja_JP",
+			StringUtil.lowerCase(assetCategory.getName()));
+		map.put(
 			"leftCategoryId",
 			String.valueOf(assetCategory.getLeftCategoryId()));
 		map.put("name_sortable", StringUtil.lowerCase(assetCategory.getName()));
 		map.put(
 			"parentCategoryId",
 			String.valueOf(assetCategory.getParentCategoryId()));
-		map.put("title_en_US", assetCategory.getName());
+		map.put("title_ja_JP", assetCategory.getName());
+
 		map.put(
 			"title_sortable", StringUtil.lowerCase(assetCategory.getName()));
 
