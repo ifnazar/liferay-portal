@@ -37,6 +37,8 @@ public class AssetCategoryFixture {
 
 	public AssetCategoryFixture(Group group) {
 		_group = group;
+
+		_assetVocabularyFixture = new AssetVocabularyFixture(group);
 	}
 
 	public AssetCategory createAssetCategory() throws Exception {
@@ -66,6 +68,10 @@ public class AssetCategoryFixture {
 		return _assetCategories;
 	}
 
+	public List<AssetVocabulary> getAssetVocabularies() {
+		return _assetVocabularyFixture.getAssetVocabularies();
+	}
+
 	public void updateDisplaySettings(Locale locale) throws Exception {
 		Group group = GroupTestUtil.updateDisplaySettings(
 			_group.getGroupId(), null, locale);
@@ -78,6 +84,7 @@ public class AssetCategoryFixture {
 	}
 
 	private final List<AssetCategory> _assetCategories = new ArrayList<>();
+	private final AssetVocabularyFixture _assetVocabularyFixture;
 	private final Group _group;
 
 }

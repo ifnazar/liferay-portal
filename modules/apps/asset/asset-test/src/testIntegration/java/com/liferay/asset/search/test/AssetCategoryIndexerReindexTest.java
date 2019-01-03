@@ -16,6 +16,7 @@ package com.liferay.asset.search.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.kernel.model.AssetCategory;
+import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Document;
@@ -86,6 +87,8 @@ public class AssetCategoryIndexerReindexTest {
 		assetCategoryFixture = new AssetCategoryFixture(group);
 
 		_assetCategories = assetCategoryFixture.getAssetCategories();
+
+		_assetVocabularies = assetCategoryFixture.getAssetVocabularies();
 	}
 
 	protected void setUpAssetCategoryIndexerFixture() {
@@ -110,6 +113,9 @@ public class AssetCategoryIndexerReindexTest {
 
 	@DeleteAfterTestRun
 	private List<AssetCategory> _assetCategories;
+
+	@DeleteAfterTestRun
+	private List<AssetVocabulary> _assetVocabularies;
 
 	@DeleteAfterTestRun
 	private List<Group> _groups;
