@@ -19,13 +19,11 @@ import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Document;
-import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.search.test.util.IndexerFixture;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -33,7 +31,6 @@ import com.liferay.portal.test.rule.PermissionCheckerTestRule;
 import com.liferay.users.admin.test.util.search.UserSearchFixture;
 
 import java.util.List;
-import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -65,23 +62,19 @@ public class AssetVocabularyIndexerReindexTest {
 
 	@Test
 	public void testReindexing() throws Exception {
-		Locale locale = LocaleUtil.US;
-
 		AssetVocabulary assetVocabulary =
 			assetVocabularyFixture.createAssetVocabulary();
 
 		String searchTerm = assetVocabulary.getName();
 
-		assetVocabularyFixture.updateDisplaySettings(locale);
-
 		assetVocabularyIndexerFixture.searchOnlyOne(searchTerm);
 
 		Document document = assetVocabularyIndexerFixture.searchOnlyOne(
-			searchTerm, locale);
+			searchTerm);
 
 		assetVocabularyIndexerFixture.deleteDocument(document);
 
-		assetVocabularyIndexerFixture.searchNoOne(searchTerm, locale);
+		assetVocabularyIndexerFixture.searchNoOne(searchTerm);
 
 		assetVocabularyIndexerFixture.reindex(assetVocabulary.getCompanyId());
 
@@ -89,11 +82,7 @@ public class AssetVocabularyIndexerReindexTest {
 	}
 
 	protected void setUpAssetVocabularyFixture() throws Exception {
-		assetVocabularyFixture = new AssetVocabularyFixture();
-
-		assetVocabularyFixture.setUp();
-
-		assetVocabularyFixture.setGroup(group);
+		assetVocabularyFixture = new AssetVocabularyFixture(group);
 
 		_assetVocabularies = assetVocabularyFixture.getAssetVocabularies();
 	}
@@ -108,14 +97,14 @@ public class AssetVocabularyIndexerReindexTest {
 
 		userSearchFixture.setUp();
 
+		group = userSearchFixture.addGroup();
+
 		_groups = userSearchFixture.getGroups();
 		_users = userSearchFixture.getUsers();
-
-		group = userSearchFixture.addGroup();
 	}
 
 	protected AssetVocabularyFixture assetVocabularyFixture;
-	protected IndexerFixture assetVocabularyIndexerFixture;
+	protected IndexerFixture<AssetVocabulary> assetVocabularyIndexerFixture;
 	protected Group group;
 
 	@Inject

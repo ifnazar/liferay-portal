@@ -16,11 +16,9 @@ package com.liferay.asset.search.test;
 
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetVocabularyServiceUtil;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -28,7 +26,6 @@ import com.liferay.portal.service.test.ServiceTestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Luan Maoski
@@ -36,48 +33,29 @@ import java.util.Locale;
  */
 public class AssetVocabularyFixture {
 
-	public AssetVocabularyFixture() {
+	public AssetVocabularyFixture(Group group) {
+		_group = group;
 	}
 
 	public AssetVocabulary createAssetVocabulary() throws Exception {
-		try {
-			AssetVocabulary assetVocabulary =
-				AssetVocabularyServiceUtil.addVocabulary(
-					getServiceContext().getScopeGroupId(),
-					RandomTestUtil.randomString(), getServiceContext());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), getUserId());
 
-			_assetVocabularies.add(assetVocabulary);
+		AssetVocabulary assetVocabulary =
+			AssetVocabularyServiceUtil.addVocabulary(
+				serviceContext.getScopeGroupId(), RandomTestUtil.randomString(),
+				serviceContext);
 
-			return assetVocabulary;
-		}
-		catch (PortalException e)
-		{
-			throw new RuntimeException(e);
-		}
+		_assetVocabularies.add(assetVocabulary);
+
+		return assetVocabulary;
 	}
 
 	public List<AssetVocabulary> getAssetVocabularies() {
 		return _assetVocabularies;
 	}
 
-	public Group getGroup() {
-		return _group;
-	}
-
-	public ServiceContext getServiceContext() throws Exception {
-		return ServiceContextTestUtil.getServiceContext(
-			_group.getGroupId(), getUserId());
-	}
-
-	public void setGroup(Group group) {
-		_group = group;
-	}
-
-	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
-
-		CompanyThreadLocal.setCompanyId(TestPropsValues.getCompanyId());
-	}
 
 	public void updateDisplaySettings(Locale locale) throws Exception {
 		Group group = GroupTestUtil.updateDisplaySettings(
@@ -91,6 +69,6 @@ public class AssetVocabularyFixture {
 	}
 
 	private final List<AssetVocabulary> _assetVocabularies = new ArrayList<>();
-	private Group _group;
+	private final Group _group;
 
 }

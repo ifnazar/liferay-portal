@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -80,17 +79,13 @@ public class AssetVocabularyIndexerIndexedFieldsTest {
 
 		indexedFieldsFixture.postProcessDocument(document);
 
-		Map<String, String> expected = _expectedFieldValues(assetVocabulary);
-
-		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
+		FieldValuesAssert.assertFieldValues(
+			_expectedFieldValues(assetVocabulary), document, searchTerm);
 	}
 
 	protected void setUpAssetVocabularyFixture() throws Exception {
-		assetVocabularyFixture = new AssetVocabularyFixture();
 
-		assetVocabularyFixture.setUp();
-
-		assetVocabularyFixture.setGroup(group);
+		assetVocabularyFixture = new AssetVocabularyFixture(group);
 
 		_assetVocabularies = assetVocabularyFixture.getAssetVocabularies();
 	}
@@ -110,14 +105,14 @@ public class AssetVocabularyIndexerIndexedFieldsTest {
 
 		userSearchFixture.setUp();
 
+		group = userSearchFixture.addGroup();
+
 		_groups = userSearchFixture.getGroups();
 		_users = userSearchFixture.getUsers();
-
-		group = userSearchFixture.addGroup();
 	}
 
 	protected AssetVocabularyFixture assetVocabularyFixture;
-	protected IndexerFixture assetVocabularyIndexerFixture;
+	protected IndexerFixture<AssetVocabulary> assetVocabularyIndexerFixture;
 	protected Group group;
 	protected IndexedFieldsFixture indexedFieldsFixture;
 
@@ -136,47 +131,30 @@ public class AssetVocabularyIndexerIndexedFieldsTest {
 		Map<String, String> map = new HashMap<>();
 
 		map.put(
-			Field.ENTRY_CLASS_PK,
+			Field.ASSET_VOCABULARY_ID,
 			String.valueOf(assetVocabulary.getVocabularyId()));
-
-		map.put(Field.ENTRY_CLASS_NAME, AssetVocabulary.class.getName());
 		map.put(
 			Field.COMPANY_ID, String.valueOf(assetVocabulary.getCompanyId()));
-
+		map.put(Field.ENTRY_CLASS_NAME, AssetVocabulary.class.getName());
+		map.put(
+			Field.ENTRY_CLASS_PK,
+			String.valueOf(assetVocabulary.getVocabularyId()));
 		map.put(Field.GROUP_ID, String.valueOf(assetVocabulary.getGroupId()));
-
-		map.put(
-			Field.ASSET_VOCABULARY_ID,
-			String.valueOf(assetVocabulary.getVocabularyId()));
-
-		map.put(
-			Field.ASSET_VOCABULARY_ID,
-			String.valueOf(assetVocabulary.getVocabularyId()));
-
+		map.put(Field.NAME, assetVocabulary.getName());
 		map.put(
 			Field.SCOPE_GROUP_ID, String.valueOf(assetVocabulary.getGroupId()));
-
-		map.put(
-			Field.STAGING_GROUP,
-			String.valueOf(assetVocabularyFixture.getGroup().isStagingGroup()));
-
+		map.put(Field.STAGING_GROUP, String.valueOf(group.isStagingGroup()));
 		map.put(Field.TITLE, assetVocabulary.getName());
-
-		map.put("title_en_US", assetVocabulary.getName());
-
-		map.put(
-			"title_sortable", StringUtil.lowerCase(assetVocabulary.getName()));
-
-		map.put(Field.NAME, assetVocabulary.getName());
-
-		map.put(
-			"name_sortable", StringUtil.lowerCase(assetVocabulary.getName()));
-
 		map.put(Field.USER_ID, String.valueOf(assetVocabulary.getUserId()));
-
 		map.put(
 			Field.USER_NAME,
 			StringUtil.lowerCase(assetVocabulary.getUserName()));
+
+		map.put(
+			"name_sortable", StringUtil.lowerCase(assetVocabulary.getName()));
+		map.put("title_en_US", assetVocabulary.getName());
+		map.put(
+			"title_sortable", StringUtil.lowerCase(assetVocabulary.getName()));
 
 		indexedFieldsFixture.populateUID(
 			AssetVocabulary.class.getName(), assetVocabulary.getVocabularyId(),
