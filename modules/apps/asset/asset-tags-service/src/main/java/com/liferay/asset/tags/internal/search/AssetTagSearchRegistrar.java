@@ -29,7 +29,6 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Luan Maoski
  * @author Lucas Marques
- * @author Pavel Savinov
  */
 @Component(immediate = true, service = {})
 public class AssetTagSearchRegistrar {
