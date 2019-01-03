@@ -26,7 +26,6 @@ import com.liferay.portal.search.spi.model.registrar.ModelSearchSettings;
 import org.osgi.service.component.annotations.Component;
 
 /**
- * @author Istvan Andras Dezsi
  * @author Luan Maoski
  * @author Lucas Marques
  */

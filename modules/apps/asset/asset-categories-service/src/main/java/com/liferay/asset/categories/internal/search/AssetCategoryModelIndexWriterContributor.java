@@ -16,7 +16,6 @@ package com.liferay.asset.categories.internal.search;
 
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
-import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.search.batch.BatchIndexingActionable;
 import com.liferay.portal.search.batch.DynamicQueryBatchIndexingActionableFactory;
 import com.liferay.portal.search.spi.model.index.contributor.ModelIndexerWriterContributor;
@@ -26,7 +25,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * @author Istvan Andras Dezsi
  * @author Luan Maoski
  * @author Lucas Marques
  */
@@ -45,10 +43,9 @@ public class AssetCategoryModelIndexWriterContributor
 
 		batchIndexingActionable.setPerformActionMethod(
 			(AssetCategory assetCategory) -> {
-				Document document =
-					modelIndexerWriterDocumentHelper.getDocument(assetCategory);
-
-				batchIndexingActionable.addDocuments(document);
+				batchIndexingActionable.addDocuments(
+					modelIndexerWriterDocumentHelper.getDocument(
+						assetCategory));
 			});
 	}
 
