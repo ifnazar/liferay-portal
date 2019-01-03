@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchEngineHelper;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -80,17 +79,12 @@ public class AssetCategoryIndexerIndexedFieldsTest {
 
 		indexedFieldsFixture.postProcessDocument(document);
 
-		Map<String, String> expected = _expectedFieldValues(assetCategory);
-
-		FieldValuesAssert.assertFieldValues(expected, document, searchTerm);
+		FieldValuesAssert.assertFieldValues(
+			_expectedFieldValues(assetCategory), document, searchTerm);
 	}
 
 	protected void setUpAssetCategoryFixture() throws Exception {
-		assetCategoryFixture = new AssetCategoryFixture();
-
-		assetCategoryFixture.setUp();
-
-		assetCategoryFixture.setGroup(group);
+		assetCategoryFixture = new AssetCategoryFixture(group);
 
 		_assetCategories = assetCategoryFixture.getAssetCategories();
 	}
@@ -109,14 +103,14 @@ public class AssetCategoryIndexerIndexedFieldsTest {
 
 		userSearchFixture.setUp();
 
+		group = userSearchFixture.addGroup();
+
 		_groups = userSearchFixture.getGroups();
 		_users = userSearchFixture.getUsers();
-
-		group = userSearchFixture.addGroup();
 	}
 
 	protected AssetCategoryFixture assetCategoryFixture;
-	protected IndexerFixture assetCategoryIndexerFixture;
+	protected IndexerFixture<AssetCategory> assetCategoryIndexerFixture;
 	protected Group group;
 	protected IndexedFieldsFixture indexedFieldsFixture;
 
@@ -135,60 +129,42 @@ public class AssetCategoryIndexerIndexedFieldsTest {
 		Map<String, String> map = new HashMap<>();
 
 		map.put(
-			Field.ENTRY_CLASS_PK,
-			String.valueOf(assetCategory.getCategoryId()));
-
-		map.put(Field.ENTRY_CLASS_NAME, AssetCategory.class.getName());
-		map.put(Field.COMPANY_ID, String.valueOf(assetCategory.getCompanyId()));
-
-		map.put(Field.GROUP_ID, String.valueOf(assetCategory.getGroupId()));
-
-		map.put(
 			Field.ASSET_CATEGORY_ID,
 			String.valueOf(assetCategory.getCategoryId()));
+		map.put(
+			Field.ASSET_CATEGORY_TITLE,
+			StringUtil.lowerCase(assetCategory.getName()));
+		map.put(
+			Field.ASSET_CATEGORY_TITLE + "_en_US",
+			StringUtil.lowerCase(assetCategory.getName()));
+		map.put(
+			Field.ASSET_VOCABULARY_ID,
+			String.valueOf(assetCategory.getVocabularyId()));
+		map.put(Field.COMPANY_ID, String.valueOf(assetCategory.getCompanyId()));
+		map.put(Field.ENTRY_CLASS_NAME, AssetCategory.class.getName());
+		map.put(
+			Field.ENTRY_CLASS_PK,
+			String.valueOf(assetCategory.getCategoryId()));
+		map.put(Field.GROUP_ID, String.valueOf(assetCategory.getGroupId()));
+		map.put(Field.NAME, assetCategory.getName());
+		map.put(
+			Field.SCOPE_GROUP_ID, String.valueOf(assetCategory.getGroupId()));
+		map.put(Field.STAGING_GROUP, String.valueOf(group.isStagingGroup()));
+		map.put(Field.TITLE, assetCategory.getName());
+		map.put(Field.USER_ID, String.valueOf(assetCategory.getUserId()));
+		map.put(
+			Field.USER_NAME, StringUtil.lowerCase(assetCategory.getUserName()));
 
 		map.put(
 			"leftCategoryId",
 			String.valueOf(assetCategory.getLeftCategoryId()));
-
-		map.put(
-			Field.ASSET_VOCABULARY_ID,
-			String.valueOf(assetCategory.getVocabularyId()));
-
-		map.put(
-			Field.SCOPE_GROUP_ID, String.valueOf(assetCategory.getGroupId()));
-
-		map.put(
-			Field.STAGING_GROUP,
-			String.valueOf(assetCategoryFixture.getGroup().isStagingGroup()));
-
+		map.put("name_sortable", StringUtil.lowerCase(assetCategory.getName()));
 		map.put(
 			"parentCategoryId",
 			String.valueOf(assetCategory.getParentCategoryId()));
-
-		map.put(Field.TITLE, assetCategory.getName());
-
-		map.put(
-			Field.ASSET_CATEGORY_TITLE,
-			StringUtil.lowerCase(assetCategory.getName()));
-
-		map.put(
-			Field.ASSET_CATEGORY_TITLE + "_en_US",
-			StringUtil.lowerCase(assetCategory.getName()));
-
 		map.put("title_en_US", assetCategory.getName());
-
 		map.put(
 			"title_sortable", StringUtil.lowerCase(assetCategory.getName()));
-
-		map.put(Field.NAME, assetCategory.getName());
-
-		map.put("name_sortable", StringUtil.lowerCase(assetCategory.getName()));
-
-		map.put(Field.USER_ID, String.valueOf(assetCategory.getUserId()));
-
-		map.put(
-			Field.USER_NAME, StringUtil.lowerCase(assetCategory.getUserName()));
 
 		indexedFieldsFixture.populateUID(
 			AssetCategory.class.getName(), assetCategory.getCategoryId(), map);

@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.search.test.util.IndexedFieldsFixture;
 import com.liferay.portal.search.test.util.IndexerFixture;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerTestRule;
@@ -69,8 +68,6 @@ public class AssetCategoryIndexerReindexTest {
 
 		String searchTerm = assetCategory.getName();
 
-		assetCategoryFixture.updateDisplaySettings(locale);
-
 		assetCategoryIndexerFixture.searchOnlyOne(searchTerm);
 
 		Document document = assetCategoryIndexerFixture.searchOnlyOne(
@@ -86,11 +83,7 @@ public class AssetCategoryIndexerReindexTest {
 	}
 
 	protected void setUpAssetCategoryFixture() throws Exception {
-		assetCategoryFixture = new AssetCategoryFixture();
-
-		assetCategoryFixture.setUp();
-
-		assetCategoryFixture.setGroup(group);
+		assetCategoryFixture = new AssetCategoryFixture(group);
 
 		_assetCategories = assetCategoryFixture.getAssetCategories();
 	}
@@ -111,7 +104,7 @@ public class AssetCategoryIndexerReindexTest {
 	}
 
 	protected AssetCategoryFixture assetCategoryFixture;
-	protected IndexerFixture assetCategoryIndexerFixture;
+	protected IndexerFixture<AssetCategory> assetCategoryIndexerFixture;
 	protected Group group;
 	protected UserSearchFixture userSearchFixture;
 

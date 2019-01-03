@@ -18,19 +18,14 @@ import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetCategoryServiceUtil;
 import com.liferay.asset.kernel.service.AssetVocabularyServiceUtil;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.service.test.ServiceTestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Luan Maoski
@@ -38,52 +33,31 @@ import java.util.Locale;
  */
 public class AssetCategoryFixture {
 
-	public AssetCategoryFixture() {
+	public AssetCategoryFixture(Group group) {
+		_group = group;
 	}
 
 	public AssetCategory createAssetCategory() throws Exception {
-		try {
-			AssetVocabulary assetVocabulary =
-				AssetVocabularyServiceUtil.addVocabulary(
-					getServiceContext().getScopeGroupId(),
-					RandomTestUtil.randomString(), getServiceContext());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), getUserId());
 
-			AssetCategory assetCategory = AssetCategoryServiceUtil.addCategory(
-				getServiceContext().getScopeGroupId(),
-				RandomTestUtil.randomString(),
-				assetVocabulary.getVocabularyId(), getServiceContext());
+		AssetVocabulary assetVocabulary =
+			AssetVocabularyServiceUtil.addVocabulary(
+				serviceContext.getScopeGroupId(), RandomTestUtil.randomString(),
+				serviceContext);
 
-			_assetCategories.add(assetCategory);
+		AssetCategory assetCategory = AssetCategoryServiceUtil.addCategory(
+			serviceContext.getScopeGroupId(), RandomTestUtil.randomString(),
+			assetVocabulary.getVocabularyId(), serviceContext);
 
-			return assetCategory;
-		}
-		catch (PortalException e)
-		{
-			throw new RuntimeException(e);
-		}
+		_assetCategories.add(assetCategory);
+
+		return assetCategory;
 	}
 
 	public List<AssetCategory> getAssetCategories() {
 		return _assetCategories;
-	}
-
-	public Group getGroup() {
-		return _group;
-	}
-
-	public ServiceContext getServiceContext() throws Exception {
-		return ServiceContextTestUtil.getServiceContext(
-			_group.getGroupId(), getUserId());
-	}
-
-	public void setGroup(Group group) {
-		_group = group;
-	}
-
-	public void setUp() throws Exception {
-		ServiceTestUtil.setUser(TestPropsValues.getUser());
-
-		CompanyThreadLocal.setCompanyId(TestPropsValues.getCompanyId());
 	}
 
 	public void updateDisplaySettings(Locale locale) throws Exception {
@@ -98,6 +72,6 @@ public class AssetCategoryFixture {
 	}
 
 	private final List<AssetCategory> _assetCategories = new ArrayList<>();
-	private Group _group;
+	private final Group _group;
 
 }
