@@ -14,8 +14,7 @@
 
 package com.liferay.asset.categories.internal.search;
 
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Field;
@@ -47,37 +46,32 @@ public class AssetCategoryKeywordQueryContributor
 		String keywords, BooleanQuery booleanQuery,
 		KeywordQueryContributorHelper keywordQueryContributorHelper) {
 
-		try {
-			SearchContext searchContext =
-				keywordQueryContributorHelper.getSearchContext();
+		SearchContext searchContext =
+			keywordQueryContributorHelper.getSearchContext();
 
-			String title = (String)searchContext.getAttribute(Field.TITLE);
+		String title = (String)searchContext.getAttribute(Field.TITLE);
 
-			if (Validator.isNotNull(title)) {
-				BooleanQuery localizedQuery = new BooleanQueryImpl();
+		if (Validator.isNotNull(title)) {
+			BooleanQuery localizedQuery = new BooleanQueryImpl();
 
-				searchContext.setAttribute(Field.ASSET_CATEGORY_TITLE, title);
+			searchContext.setAttribute(Field.ASSET_CATEGORY_TITLE, title);
 
-				queryHelper.addSearchLocalizedTerm(
-					localizedQuery, searchContext, Field.ASSET_CATEGORY_TITLE,
-					true);
-				queryHelper.addSearchLocalizedTerm(
-					localizedQuery, searchContext, Field.TITLE, true);
+			queryHelper.addSearchLocalizedTerm(
+				localizedQuery, searchContext, Field.ASSET_CATEGORY_TITLE,
+				true);
+			queryHelper.addSearchLocalizedTerm(
+				localizedQuery, searchContext, Field.TITLE, true);
 
+			try {
 				booleanQuery.add(localizedQuery, BooleanClauseOccur.SHOULD);
 			}
-		}
-		catch (ParseException pe) {
-			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to search asset category");
+			catch (ParseException pe) {
+				throw new SystemException(pe);
 			}
 		}
 	}
 
 	@Reference
 	protected QueryHelper queryHelper;
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		AssetCategoryKeywordQueryContributor.class);
 
 }
