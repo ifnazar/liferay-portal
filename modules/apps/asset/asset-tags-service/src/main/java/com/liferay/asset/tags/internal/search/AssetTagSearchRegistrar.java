@@ -39,7 +39,8 @@ public class AssetTagSearchRegistrar {
 			AssetTag.class, bundleContext,
 			modelSearchDefinition -> {
 				modelSearchDefinition.setDefaultSelectedFieldNames(
-					Field.COMPANY_ID, Field.GROUP_ID, Field.UID);
+					Field.COMPANY_ID, Field.ENTRY_CLASS_PK,
+					Field.ENTRY_CLASS_NAME, Field.GROUP_ID, Field.UID);
 				modelSearchDefinition.setModelIndexWriteContributor(
 					modelIndexWriterContributor);
 			});
