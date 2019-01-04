@@ -16,8 +16,7 @@ package com.liferay.asset.categories.internal.search;
 
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -45,30 +44,21 @@ public class AssetVocabularyModelDocumentContributor
 
 	@Override
 	public void contribute(Document document, AssetVocabulary assetVocabulary) {
-		try {
-			document.addKeyword(
-				Field.ASSET_VOCABULARY_ID, assetVocabulary.getVocabularyId());
+		document.addKeyword(
+			Field.ASSET_VOCABULARY_ID, assetVocabulary.getVocabularyId());
 
-			Locale siteDefaultLocale = _portal.getSiteDefaultLocale(
-				assetVocabulary.getGroupId());
+		Locale siteDefaultLocale = getSiteDefaultLocale(
+			assetVocabulary.getGroupId());
 
-			addLocalizedField(
-				document, Field.DESCRIPTION, siteDefaultLocale,
-				assetVocabulary.getDescriptionMap());
+		addLocalizedField(
+			document, Field.DESCRIPTION, siteDefaultLocale,
+			assetVocabulary.getDescriptionMap());
 
-			document.addText(Field.NAME, assetVocabulary.getName());
+		document.addText(Field.NAME, assetVocabulary.getName());
 
-			addLocalizedField(
-				document, Field.TITLE, siteDefaultLocale,
-				assetVocabulary.getTitleMap());
-		}
-		catch (PortalException pe) {
-			if (_log.isWarnEnabled()) {
-				long categoryId = assetVocabulary.getVocabularyId();
-
-				_log.warn("Unable to index asset vocabulary " + categoryId, pe);
-			}
-		}
+		addLocalizedField(
+			document, Field.TITLE, siteDefaultLocale,
+			assetVocabulary.getTitleMap());
 	}
 
 	protected void addLocalizedField(
@@ -90,8 +80,14 @@ public class AssetVocabularyModelDocumentContributor
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		AssetVocabularyModelDocumentContributor.class);
+	protected Locale getSiteDefaultLocale(long groupId) {
+		try {
+			return _portal.getSiteDefaultLocale(groupId);
+		}
+		catch (PortalException pe) {
+			throw new SystemException(pe);
+		}
+	}
 
 	@Reference
 	private Portal _portal;
