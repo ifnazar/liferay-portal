@@ -37,7 +37,7 @@ public class AssetTagSearcher extends BaseSearcher {
 		setDefaultSelectedFieldNames(
 			Field.COMPANY_ID, Field.GROUP_ID, Field.UID);
 		setFilterSearch(true);
-		setPermissionAware(true);
+		setPermissionAware(false);
 	}
 
 	@Override
