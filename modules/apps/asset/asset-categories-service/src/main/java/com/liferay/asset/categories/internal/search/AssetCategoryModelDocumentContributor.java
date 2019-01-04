@@ -17,8 +17,7 @@ package com.liferay.asset.categories.internal.search;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -67,19 +66,7 @@ public class AssetCategoryModelDocumentContributor
 		document.addKeyword(
 			Field.ASSET_VOCABULARY_ID, assetCategory.getVocabularyId());
 
-		Locale siteDefaultLocale = null;
-
-		try {
-			siteDefaultLocale = _portal.getSiteDefaultLocale(
-				assetCategory.getGroupId());
-		}
-		catch (PortalException pe) {
-			if (_log.isWarnEnabled()) {
-				long categoryId = assetCategory.getCategoryId();
-
-				_log.warn("Unable to index asset category " + categoryId, pe);
-			}
-		}
+		Locale siteDefaultLocale = getSiteDefaultLocale(assetCategory);
 
 		addLocalizedField(
 			document, Field.DESCRIPTION, siteDefaultLocale,
@@ -164,10 +151,16 @@ public class AssetCategoryModelDocumentContributor
 		}
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		AssetCategoryModelDocumentContributor.class);
+	protected Locale getSiteDefaultLocale(AssetCategory assetCategory) {
+		try {
+			return portal.getSiteDefaultLocale(assetCategory.getGroupId());
+		}
+		catch (PortalException pe) {
+			throw new SystemException(pe);
+		}
+	}
 
 	@Reference
-	private Portal _portal;
+	protected Portal portal;
 
 }
