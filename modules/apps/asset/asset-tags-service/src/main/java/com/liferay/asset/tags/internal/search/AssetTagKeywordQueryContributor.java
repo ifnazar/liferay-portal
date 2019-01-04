@@ -14,8 +14,7 @@
 
 package com.liferay.asset.tags.internal.search;
 
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Field;
@@ -47,7 +46,6 @@ public class AssetTagKeywordQueryContributor
 		String keywords, BooleanQuery booleanQuery,
 		KeywordQueryContributorHelper keywordQueryContributorHelper) {
 
-		try {
 			SearchContext searchContext =
 				keywordQueryContributorHelper.getSearchContext();
 
@@ -59,20 +57,16 @@ public class AssetTagKeywordQueryContributor
 				queryHelper.addSearchTerm(
 					nameQuery, searchContext, Field.NAME, true);
 
-				booleanQuery.add(nameQuery, BooleanClauseOccur.SHOULD);
+				try {
+					booleanQuery.add(nameQuery, BooleanClauseOccur.SHOULD);
+				}
+				catch (ParseException pe) {
+					throw new SystemException(pe);
+				}
 			}
-		}
-		catch (ParseException pe) {
-			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to search asset tag");
-			}
-		}
 	}
 
 	@Reference
 	protected QueryHelper queryHelper;
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		AssetTagKeywordQueryContributor.class);
 
 }
