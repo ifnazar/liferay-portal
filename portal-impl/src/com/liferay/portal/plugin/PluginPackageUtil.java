@@ -474,15 +474,6 @@ public class PluginPackageUtil {
 		return PropsValues.PLUGIN_TYPES;
 	}
 
-	private void _indexPluginPackage(PluginPackage pluginPackage)
-		throws PortalException {
-
-		Indexer<PluginPackage> indexer = IndexerRegistryUtil.getIndexer(
-			PluginPackage.class);
-
-		indexer.reindex(pluginPackage);
-	}
-
 	private boolean _isCurrentVersionSupported(List<String> versions) {
 		Version currentVersion = Version.getInstance(ReleaseInfo.getVersion());
 
@@ -750,7 +741,6 @@ public class PluginPackageUtil {
 
 			pluginPackageRepository.addPluginPackage(pluginPackage);
 
-			_indexPluginPackage(pluginPackage);
 		}
 
 		return pluginPackageRepository;
@@ -1248,7 +1238,6 @@ public class PluginPackageUtil {
 
 		_updateAvailable = null;
 
-		_indexPluginPackage(pluginPackage);
 	}
 
 	private void _registerPluginPackageInstallation(String preliminaryContext) {
@@ -1281,11 +1270,6 @@ public class PluginPackageUtil {
 			}
 		}
 
-		Indexer<PluginPackage> indexer = IndexerRegistryUtil.getIndexer(
-			PluginPackage.class);
-
-		indexer.reindex(new String[0]);
-
 		return repositoryReport;
 	}
 
@@ -1293,6 +1277,11 @@ public class PluginPackageUtil {
 			String keywords, String type, String tag, String license,
 			String repositoryURL, String status, int start, int end)
 		throws PortalException {
+
+
+		if ("a".equals("a")){
+			throw new RuntimeException("PluginPackageUtil.search:: _search");
+		}
 
 		_checkRepositories(repositoryURL);
 
@@ -1330,22 +1319,6 @@ public class PluginPackageUtil {
 
 		_installedPluginPackages.removePluginPackage(pluginPackage);
 
-		try {
-			List<PluginPackage> pluginPackages = _getAvailablePluginPackages(
-				pluginPackage.getGroupId(), pluginPackage.getArtifactId());
-
-			for (PluginPackage availablePackage : pluginPackages) {
-				_indexPluginPackage(availablePackage);
-			}
-		}
-		catch (PluginPackageException ppe) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					StringBundler.concat(
-						"Unable to reindex unistalled package ",
-						pluginPackage.getContext(), ": ", ppe.getMessage()));
-			}
-		}
 	}
 
 	private void _updateInstallingPluginPackage(
