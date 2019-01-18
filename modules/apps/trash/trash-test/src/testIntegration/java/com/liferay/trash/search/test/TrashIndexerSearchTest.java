@@ -65,6 +65,9 @@ public class TrashIndexerSearchTest {
 		setUpTrashEntryFixture();
 
 		_fileEntry = trashFixture.createFileEntry();
+		
+		_fileEntry = DLAppLocalServiceUtil.getFileEntry(
+				_fileEntry.getFileEntryId());
 	}
 
 	@After
