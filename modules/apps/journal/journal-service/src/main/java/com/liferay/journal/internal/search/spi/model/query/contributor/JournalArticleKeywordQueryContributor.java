@@ -14,15 +14,18 @@
 
 package com.liferay.journal.internal.search.spi.model.query.contributor;
 
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.ParseException;
 import com.liferay.portal.kernel.search.Query;
+import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.search.localization.SearchLocalizationHelper;
 import com.liferay.portal.search.query.QueryHelper;
 import com.liferay.portal.search.spi.model.query.contributor.KeywordQueryContributor;
 import com.liferay.portal.search.spi.model.query.contributor.helper.KeywordQueryContributorHelper;
@@ -68,13 +71,56 @@ public class JournalArticleKeywordQueryContributor
 				booleanQuery, searchContext, Field.TITLE, false);
 			queryHelper.addSearchTerm(
 				booleanQuery, searchContext, Field.USER_NAME, false);
+
+			QueryConfig queryConfig = searchContext.getQueryConfig();
+
+			String[] localizedFieldNames =
+				_searchLocalizationHelper.getLocalizedFieldNames(
+					new String[] {
+						Field.CONTENT, Field.DESCRIPTION, Field.TITLE
+					},
+					searchContext);
+
+			queryConfig.addHighlightFieldNames(localizedFieldNames);
 		}
-		catch (Exception e) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to execute JournalArticleKeywordQueryContributor");
-			}
+		catch (Exception ex) {
+			throw new SystemException(
+				"Unable to execute JournalArticleKeywordQueryContributor", ex);
 		}
+	}
+
+	protected Map<String, Query> addLocalizedFields(
+			BooleanQuery searchQuery, String field, String value, boolean like,
+			SearchContext searchContext)
+		throws ParseException {
+
+		String[] localizedFieldNames =
+			_searchLocalizationHelper.getLocalizedFieldNames(
+				new String[] {field}, searchContext);
+
+		Map<String, Query> queries = new HashMap<>();
+
+		for (String localizedFieldName : localizedFieldNames) {
+			Query query = searchQuery.addTerm(localizedFieldName, value, like);
+
+			queries.put(field, query);
+		}
+
+		return queries;
+	}
+
+	protected void addLocalizedQuery(
+			BooleanQuery searchQuery, BooleanQuery localizedQuery,
+			SearchContext searchContext)
+		throws ParseException {
+
+		BooleanClauseOccur booleanClauseOccur = BooleanClauseOccur.SHOULD;
+
+		if (searchContext.isAndSearch()) {
+			booleanClauseOccur = BooleanClauseOccur.MUST;
+		}
+
+		searchQuery.add(localizedQuery, booleanClauseOccur);
 	}
 
 	protected Map<String, Query> addSearchLocalizedTerm(
@@ -82,49 +128,33 @@ public class JournalArticleKeywordQueryContributor
 			boolean like)
 		throws Exception {
 
-		if (Validator.isNull(field)) {
+		if (Validator.isBlank(field)) {
 			return Collections.emptyMap();
 		}
 
-		String value = String.valueOf(searchContext.getAttribute(field));
+		String value = GetterUtil.getString(searchContext.getAttribute(field));
 
-		if (Validator.isNull(value)) {
+		if (Validator.isBlank(value)) {
 			value = searchContext.getKeywords();
 		}
 
-		if (Validator.isNull(value)) {
+		if (Validator.isBlank(value)) {
 			return Collections.emptyMap();
 		}
 
-		String localizedField = Field.getLocalizedName(
-			searchContext.getLocale(), field);
+		Map<String, Query> queries = null;
 
-		Map<String, Query> queries = new HashMap<>();
-
-		if (Validator.isNull(searchContext.getKeywords())) {
+		if (Validator.isBlank(searchContext.getKeywords())) {
 			BooleanQuery localizedQuery = new BooleanQueryImpl();
 
-			Query query = localizedQuery.addTerm(field, value, like);
+			queries = addLocalizedFields(
+				localizedQuery, field, value, like, searchContext);
 
-			queries.put(field, query);
-
-			Query localizedFieldQuery = localizedQuery.addTerm(
-				localizedField, value, like);
-
-			queries.put(field, localizedFieldQuery);
-
-			BooleanClauseOccur booleanClauseOccur = BooleanClauseOccur.SHOULD;
-
-			if (searchContext.isAndSearch()) {
-				booleanClauseOccur = BooleanClauseOccur.MUST;
-			}
-
-			searchQuery.add(localizedQuery, booleanClauseOccur);
+			addLocalizedQuery(searchQuery, localizedQuery, searchContext);
 		}
 		else {
-			Query query = searchQuery.addTerm(localizedField, value, like);
-
-			queries.put(field, query);
+			queries = addLocalizedFields(
+				searchQuery, field, value, like, searchContext);
 		}
 
 		return queries;
@@ -133,7 +163,7 @@ public class JournalArticleKeywordQueryContributor
 	@Reference
 	protected QueryHelper queryHelper;
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		JournalArticleKeywordQueryContributor.class);
+	@Reference
+	private SearchLocalizationHelper _searchLocalizationHelper;
 
 }

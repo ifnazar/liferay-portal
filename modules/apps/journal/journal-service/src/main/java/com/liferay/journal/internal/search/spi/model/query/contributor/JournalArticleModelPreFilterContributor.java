@@ -15,8 +15,7 @@
 package com.liferay.journal.internal.search.spi.model.query.contributor;
 
 import com.liferay.dynamic.data.mapping.util.DDMIndexer;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
@@ -56,10 +55,24 @@ import org.osgi.service.component.annotations.Reference;
 public class JournalArticleModelPreFilterContributor
 	implements ModelPreFilterContributor {
 
+
 	@Override
 	public void contribute(
 		BooleanFilter contextBooleanFilter,
 		ModelSearchSettings modelSearchSettings, SearchContext searchContext) {
+		try {
+			contributeX(contextBooleanFilter, modelSearchSettings, searchContext);
+		}
+		catch (Exception ex) {
+			throw new SystemException(
+				"Unable to execute JournalArticleModelPreFilterContributor",
+				ex);
+		}
+	}
+
+	public void contributeX(
+		BooleanFilter contextBooleanFilter,
+		ModelSearchSettings modelSearchSettings, SearchContext searchContext) throws Exception {
 
 		Long classNameId = (Long)searchContext.getAttribute(
 			Field.CLASS_NAME_ID);
@@ -69,33 +82,24 @@ public class JournalArticleModelPreFilterContributor
 				Field.CLASS_NAME_ID, classNameId.toString());
 		}
 
-		try {
-			addStatus(contextBooleanFilter, searchContext);
+		addStatus(contextBooleanFilter, searchContext);
 
-			addSearchClassTypeIds(contextBooleanFilter, searchContext);
+		addSearchClassTypeIds(contextBooleanFilter, searchContext);
 
-			String ddmStructureFieldName = (String)searchContext.getAttribute(
-				"ddmStructureFieldName");
-			Serializable ddmStructureFieldValue = searchContext.getAttribute(
-				"ddmStructureFieldValue");
+		String ddmStructureFieldName = (String)searchContext.getAttribute(
+			"ddmStructureFieldName");
+		Serializable ddmStructureFieldValue = searchContext.getAttribute(
+			"ddmStructureFieldValue");
 
-			if (Validator.isNotNull(ddmStructureFieldName) &&
-				Validator.isNotNull(ddmStructureFieldValue)) {
+		if (Validator.isNotNull(ddmStructureFieldName) &&
+			Validator.isNotNull(ddmStructureFieldValue)) {
 
-				QueryFilter queryFilter =
-					_ddmIndexer.createFieldValueQueryFilter(
-						ddmStructureFieldName, ddmStructureFieldValue,
-						searchContext.getLocale());
+			QueryFilter queryFilter =
+				_ddmIndexer.createFieldValueQueryFilter(
+					ddmStructureFieldName, ddmStructureFieldValue,
+					searchContext.getLocale());
 
-				contextBooleanFilter.add(queryFilter, BooleanClauseOccur.MUST);
-			}
-		}
-		catch (Exception e) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to execute " +
-						"JournalArticleModelPreFilterContributor");
-			}
+			contextBooleanFilter.add(queryFilter, BooleanClauseOccur.MUST);
 		}
 
 		String ddmStructureKey = (String)searchContext.getAttribute(
@@ -134,7 +138,8 @@ public class JournalArticleModelPreFilterContributor
 			contextBooleanFilter.addRequiredTerm("latest", Boolean.TRUE);
 		}
 		else if (!relatedClassName && showNonindexable) {
-			contextBooleanFilter.addRequiredTerm("headListable", Boolean.TRUE);
+			contextBooleanFilter.addRequiredTerm(
+				"headListable", Boolean.TRUE);
 		}
 
 		boolean filterExpired = GetterUtil.getBoolean(
@@ -163,6 +168,7 @@ public class JournalArticleModelPreFilterContributor
 		dateRangeFilterBuilder.setIncludeUpper(false);
 
 		contextBooleanFilter.add(dateRangeFilterBuilder.build());
+
 	}
 
 	protected Filter addSearchClassTypeIds(
@@ -219,9 +225,6 @@ public class JournalArticleModelPreFilterContributor
 	protected void setDDMIndexer(DDMIndexer ddmIndexer) {
 		_ddmIndexer = ddmIndexer;
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		JournalArticleModelPreFilterContributor.class);
 
 	private DDMIndexer _ddmIndexer;
 
