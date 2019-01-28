@@ -15,8 +15,7 @@
 package com.liferay.journal.internal.search.spi.model.query.contributor;
 
 import com.liferay.dynamic.data.mapping.util.DDMIndexer;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
@@ -61,15 +60,15 @@ public class JournalArticleModelPreFilterContributor
 		BooleanFilter contextBooleanFilter,
 		ModelSearchSettings modelSearchSettings, SearchContext searchContext) {
 
-		Long classNameId = (Long)searchContext.getAttribute(
-			Field.CLASS_NAME_ID);
-
-		if ((classNameId != null) && (classNameId != 0)) {
-			contextBooleanFilter.addRequiredTerm(
-				Field.CLASS_NAME_ID, classNameId.toString());
-		}
-
 		try {
+			Long classNameId = (Long)searchContext.getAttribute(
+				Field.CLASS_NAME_ID);
+
+			if ((classNameId != null) && (classNameId != 0)) {
+				contextBooleanFilter.addRequiredTerm(
+					Field.CLASS_NAME_ID, classNameId.toString());
+			}
+
 			addStatus(contextBooleanFilter, searchContext);
 
 			addSearchClassTypeIds(contextBooleanFilter, searchContext);
@@ -89,80 +88,79 @@ public class JournalArticleModelPreFilterContributor
 
 				contextBooleanFilter.add(queryFilter, BooleanClauseOccur.MUST);
 			}
-		}
-		catch (Exception e) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to execute " +
-						"JournalArticleModelPreFilterContributor");
+
+			String ddmStructureKey = (String)searchContext.getAttribute(
+				"ddmStructureKey");
+
+			if (Validator.isNotNull(ddmStructureKey)) {
+				contextBooleanFilter.addRequiredTerm(
+					"ddmStructureKey", ddmStructureKey);
 			}
+
+			String ddmTemplateKey = (String)searchContext.getAttribute(
+				"ddmTemplateKey");
+
+			if (Validator.isNotNull(ddmTemplateKey)) {
+				contextBooleanFilter.addRequiredTerm(
+					"ddmTemplateKey", ddmTemplateKey);
+			}
+
+			boolean head = GetterUtil.getBoolean(
+				searchContext.getAttribute("head"), Boolean.TRUE);
+			boolean latest = GetterUtil.getBoolean(
+				searchContext.getAttribute("latest"));
+			boolean relatedClassName = GetterUtil.getBoolean(
+				searchContext.getAttribute("relatedClassName"));
+			boolean showNonindexable = GetterUtil.getBoolean(
+				searchContext.getAttribute("showNonindexable"));
+
+			if (latest && !relatedClassName && !showNonindexable) {
+				contextBooleanFilter.addRequiredTerm("latest", Boolean.TRUE);
+			}
+			else if (head && !relatedClassName && !showNonindexable) {
+				contextBooleanFilter.addRequiredTerm("head", Boolean.TRUE);
+			}
+
+			if (latest && !relatedClassName && showNonindexable) {
+				contextBooleanFilter.addRequiredTerm("latest", Boolean.TRUE);
+			}
+			else if (!relatedClassName && showNonindexable) {
+				contextBooleanFilter.addRequiredTerm(
+					"headListable", Boolean.TRUE);
+			}
+
+			boolean filterExpired = GetterUtil.getBoolean(
+				searchContext.getAttribute("filterExpired"));
+
+			if (!filterExpired) {
+				return;
+			}
+
+			DateRangeFilterBuilder dateRangeFilterBuilder =
+				_filterBuilders.dateRangeFilterBuilder();
+
+			dateRangeFilterBuilder.setFieldName(Field.EXPIRATION_DATE);
+
+			String formatPattern = PropsUtil.get(
+				PropsKeys.INDEX_DATE_FORMAT_PATTERN);
+
+			dateRangeFilterBuilder.setFormat(formatPattern);
+
+			Format dateFormat = FastDateFormatFactoryUtil.getSimpleDateFormat(
+				formatPattern);
+
+			dateRangeFilterBuilder.setFrom(dateFormat.format(new Date()));
+
+			dateRangeFilterBuilder.setIncludeLower(false);
+			dateRangeFilterBuilder.setIncludeUpper(false);
+
+			contextBooleanFilter.add(dateRangeFilterBuilder.build());
 		}
-
-		String ddmStructureKey = (String)searchContext.getAttribute(
-			"ddmStructureKey");
-
-		if (Validator.isNotNull(ddmStructureKey)) {
-			contextBooleanFilter.addRequiredTerm(
-				"ddmStructureKey", ddmStructureKey);
+		catch (Exception ex) {
+			throw new SystemException(
+				"Unable to execute JournalArticleModelPreFilterContributor",
+				ex);
 		}
-
-		String ddmTemplateKey = (String)searchContext.getAttribute(
-			"ddmTemplateKey");
-
-		if (Validator.isNotNull(ddmTemplateKey)) {
-			contextBooleanFilter.addRequiredTerm(
-				"ddmTemplateKey", ddmTemplateKey);
-		}
-
-		boolean head = GetterUtil.getBoolean(
-			searchContext.getAttribute("head"), Boolean.TRUE);
-		boolean latest = GetterUtil.getBoolean(
-			searchContext.getAttribute("latest"));
-		boolean relatedClassName = GetterUtil.getBoolean(
-			searchContext.getAttribute("relatedClassName"));
-		boolean showNonindexable = GetterUtil.getBoolean(
-			searchContext.getAttribute("showNonindexable"));
-
-		if (latest && !relatedClassName && !showNonindexable) {
-			contextBooleanFilter.addRequiredTerm("latest", Boolean.TRUE);
-		}
-		else if (head && !relatedClassName && !showNonindexable) {
-			contextBooleanFilter.addRequiredTerm("head", Boolean.TRUE);
-		}
-
-		if (latest && !relatedClassName && showNonindexable) {
-			contextBooleanFilter.addRequiredTerm("latest", Boolean.TRUE);
-		}
-		else if (!relatedClassName && showNonindexable) {
-			contextBooleanFilter.addRequiredTerm("headListable", Boolean.TRUE);
-		}
-
-		boolean filterExpired = GetterUtil.getBoolean(
-			searchContext.getAttribute("filterExpired"));
-
-		if (!filterExpired) {
-			return;
-		}
-
-		DateRangeFilterBuilder dateRangeFilterBuilder =
-			_filterBuilders.dateRangeFilterBuilder();
-
-		dateRangeFilterBuilder.setFieldName(Field.EXPIRATION_DATE);
-
-		String formatPattern = PropsUtil.get(
-			PropsKeys.INDEX_DATE_FORMAT_PATTERN);
-
-		dateRangeFilterBuilder.setFormat(formatPattern);
-
-		Format dateFormat = FastDateFormatFactoryUtil.getSimpleDateFormat(
-			formatPattern);
-
-		dateRangeFilterBuilder.setFrom(dateFormat.format(new Date()));
-
-		dateRangeFilterBuilder.setIncludeLower(false);
-		dateRangeFilterBuilder.setIncludeUpper(false);
-
-		contextBooleanFilter.add(dateRangeFilterBuilder.build());
 	}
 
 	protected Filter addSearchClassTypeIds(
@@ -219,9 +217,6 @@ public class JournalArticleModelPreFilterContributor
 	protected void setDDMIndexer(DDMIndexer ddmIndexer) {
 		_ddmIndexer = ddmIndexer;
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		JournalArticleModelPreFilterContributor.class);
 
 	private DDMIndexer _ddmIndexer;
 

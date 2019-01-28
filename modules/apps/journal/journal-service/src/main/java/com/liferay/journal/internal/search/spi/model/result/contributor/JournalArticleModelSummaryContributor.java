@@ -76,24 +76,36 @@ public class JournalArticleModelSummaryContributor
 			snippetLocale = locale;
 		}
 
-		String title = document.get(
-			snippetLocale, Field.SNIPPET + StringPool.UNDERLINE + Field.TITLE,
-			Field.TITLE);
+		String title = getTitle(document, defaultLocale, snippetLocale);
 
-		if (Validator.isNull(title) && !snippetLocale.equals(defaultLocale)) {
-			title = document.get(
-				defaultLocale,
-				Field.SNIPPET + StringPool.UNDERLINE + Field.TITLE,
-				Field.TITLE);
-		}
-
-		String content = StringPool.BLANK;
+		String content = getContent(document, defaultLocale, snippetLocale);
 
 		Summary summary = new Summary(snippetLocale, title, content);
 
 		summary.setMaxContentLength(200);
 
 		return summary;
+	}
+
+	protected String getContent(
+		Document document, Locale defaultLocale, Locale snippetLocale) {
+
+		String content = StringUtil.trim(
+			document.get(snippetLocale, "content"));
+
+		/**
+		 * TODO : We don't have 'portletRequest' and 'portletResponse', to use the old indexer code
+		 *
+		 * 	String content = getDDMContentSummary( document, snippetLocale,
+		 * 		portletRequest, portletResponse);
+		 *
+		 *  if (Validator.isBlank(content) &&
+		 *  	!snippetLocale.equals(defaultLocale)) {
+		 *  		content = getDDMContentSummary(	document, defaultLocale,
+		 *  	portletRequest, portletResponse);
+		 *  }
+		 */
+		return content;
 	}
 
 	protected String getDDMContentSummary(
@@ -183,6 +195,23 @@ public class JournalArticleModelSummaryContributor
 		}
 
 		return null;
+	}
+
+	protected String getTitle(
+		Document document, Locale defaultLocale, Locale snippetLocale) {
+
+		String title = document.get(
+			snippetLocale, Field.SNIPPET + StringPool.UNDERLINE + Field.TITLE,
+			Field.TITLE);
+
+		if (Validator.isBlank(title) && !snippetLocale.equals(defaultLocale)) {
+			title = document.get(
+				defaultLocale,
+				Field.SNIPPET + StringPool.UNDERLINE + Field.TITLE,
+				Field.TITLE);
+		}
+
+		return title;
 	}
 
 	@Reference(unbind = "-")
