@@ -113,11 +113,11 @@ public class BufferedIndexerInvocationHandler implements InvocationHandler {
 
 			Long classPK = (Long)classedModel.getPrimaryKeyObj();
 
-			if (args[0] instanceof ResourcedModel) {
-				ResourcedModel resourcedModel = (ResourcedModel)args[0];
-
-				classPK = resourcedModel.getResourcePrimKey();
-			}
+//			if (args[0] instanceof ResourcedModel) {
+//				ResourcedModel resourcedModel = (ResourcedModel)args[0];
+//
+//				classPK = resourcedModel.getResourcePrimKey();
+//			}
 
 			bufferRequest(
 				methodKey, classedModel.getModelClassName(), classPK,
