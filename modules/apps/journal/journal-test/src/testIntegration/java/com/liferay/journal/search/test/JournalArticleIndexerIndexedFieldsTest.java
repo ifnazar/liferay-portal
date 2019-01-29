@@ -164,7 +164,7 @@ public class JournalArticleIndexerIndexedFieldsTest
 			String title = journalArticle.getTitle(languageId);
 
 			if (languageId.equals(articleDefaultLanguageId)) {
-				map.put(Field.CONTENT, content);
+//				map.put(Field.CONTENT, content);
 				map.put(Field.DEFAULT_LANGUAGE_ID, languageId);
 			}
 

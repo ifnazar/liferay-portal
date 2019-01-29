@@ -26,6 +26,7 @@ import com.liferay.journal.util.JournalConverter;
 import com.liferay.journal.util.impl.JournalUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
@@ -34,6 +35,7 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -54,106 +56,98 @@ import org.osgi.service.component.annotations.Reference;
 public class JournalArticleModelDocumentContributor
 	implements ModelDocumentContributor<JournalArticle> {
 
-	@Override
 	public void contribute(Document document, JournalArticle journalArticle) {
-		long classPK = journalArticle.getId();
+		try {
+			long classPK = journalArticle.getId();
 
-		if (!isIndexAllArticleVersions()) {
-			classPK = journalArticle.getResourcePrimKey();
-		}
+			if (!isIndexAllArticleVersions()) {
+				classPK = journalArticle.getResourcePrimKey();
+			}
 
-		document.addUID(_CLASS_NAME, classPK);
+			document.addUID(CLASS_NAME, classPK);
 
-		String articleDefaultLanguageId = LocalizationUtil.getDefaultLanguageId(
-			journalArticle.getDocument());
+			Localization localization = getLocalization();
 
-		String[] languageIds = LocalizationUtil.getAvailableLanguageIds(
-			journalArticle.getDocument());
+			String[] languageIds = localization.getAvailableLanguageIds(
+				journalArticle.getDocument());
 
-		for (String languageId : languageIds) {
-			try {
+			for (String languageId : languageIds) {
 				String content = extractDDMContent(journalArticle, languageId);
 
 				String description = journalArticle.getDescription(languageId);
 
 				String title = journalArticle.getTitle(languageId);
 
-				if (languageId.equals(articleDefaultLanguageId)) {
-					document.addText(Field.CONTENT, content);
-					document.addText(Field.DESCRIPTION, description);
-					document.addText("defaultLanguageId", languageId);
-				}
-
 				document.addText(
-					LocalizationUtil.getLocalizedName(
-						Field.CONTENT, languageId),
+					localization.getLocalizedName(Field.CONTENT, languageId),
 					content);
 				document.addText(
-					LocalizationUtil.getLocalizedName(
+					localization.getLocalizedName(
 						Field.DESCRIPTION, languageId),
 					description);
 				document.addText(
-					LocalizationUtil.getLocalizedName(Field.TITLE, languageId),
+					localization.getLocalizedName(Field.TITLE, languageId),
 					title);
 			}
-			catch (Exception e) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
-						"Unable to index journal article " +
-							journalArticle.getArticleId(),
-						e);
+
+			document.addKeyword(Field.FOLDER_ID, journalArticle.getFolderId());
+
+			String articleId = journalArticle.getArticleId();
+
+			if (journalArticle.isInTrash()) {
+				articleId = _trashHelper.getOriginalTitle(articleId);
+			}
+
+			document.addKeywordSortable(Field.ARTICLE_ID, articleId);
+
+			document.addDate(
+				Field.DISPLAY_DATE, journalArticle.getDisplayDate());
+			document.addKeyword(
+				Field.LAYOUT_UUID, journalArticle.getLayoutUuid());
+			document.addKeyword(
+				Field.TREE_PATH,
+				StringUtil.split(journalArticle.getTreePath(), CharPool.SLASH));
+			document.addKeyword(Field.VERSION, journalArticle.getVersion());
+
+			document.addKeyword(
+				"ddmStructureKey", journalArticle.getDDMStructureKey());
+			document.addKeyword(
+				"ddmTemplateKey", journalArticle.getDDMTemplateKey());
+
+			String defaultLanguageId = localization.getDefaultLanguageId(
+				journalArticle.getDocument());
+
+			document.addText("defaultLanguageId", defaultLanguageId);
+
+			document.addDate("displayDate", journalArticle.getDisplayDate());
+			document.addKeyword("head", JournalUtil.isHead(journalArticle));
+
+			boolean headListable = JournalUtil.isHeadListable(journalArticle);
+
+			document.addKeyword("headListable", headListable);
+
+			boolean latestArticle = JournalUtil.isLatestArticle(journalArticle);
+
+			document.addKeyword("latest", latestArticle);
+
+			// Scheduled listable articles should be visible in asset browser
+
+			if (journalArticle.isScheduled() && headListable) {
+				boolean visible = GetterUtil.getBoolean(
+					document.get("visible"));
+
+				if (!visible) {
+					document.addKeyword("visible", true);
 				}
 			}
-		}
 
-		document.addKeyword(Field.FOLDER_ID, journalArticle.getFolderId());
-
-		String articleId = journalArticle.getArticleId();
-
-		if (journalArticle.isInTrash()) {
-			articleId = _trashHelper.getOriginalTitle(articleId);
-		}
-
-		document.addKeywordSortable(Field.ARTICLE_ID, articleId);
-
-		document.addDate(Field.DISPLAY_DATE, journalArticle.getDisplayDate());
-		document.addKeyword(Field.LAYOUT_UUID, journalArticle.getLayoutUuid());
-		document.addKeyword(
-			Field.TREE_PATH,
-			StringUtil.split(journalArticle.getTreePath(), CharPool.SLASH));
-		document.addKeyword(Field.VERSION, journalArticle.getVersion());
-
-		document.addKeyword(
-			"ddmStructureKey", journalArticle.getDDMStructureKey());
-		document.addKeyword(
-			"ddmTemplateKey", journalArticle.getDDMTemplateKey());
-		document.addKeyword("head", JournalUtil.isHead(journalArticle));
-
-		boolean headListable = JournalUtil.isHeadListable(journalArticle);
-
-		document.addKeyword("headListable", headListable);
-
-		boolean latestArticle = JournalUtil.isLatestArticle(journalArticle);
-
-		document.addKeyword("latest", latestArticle);
-
-		// Scheduled listable articles should be visible in asset browser
-
-		if (journalArticle.isScheduled() && headListable) {
-			boolean visible = GetterUtil.getBoolean(document.get("visible"));
-
-			if (!visible) {
-				document.addKeyword("visible", true);
-			}
-		}
-
-		try {
 			addDDMStructureAttributes(document, journalArticle);
 		}
-		catch (Exception e) {
-			if (_log.isWarnEnabled()) {
-				_log.warn("Unable to index journal article " + articleId, e);
-			}
+		catch (Exception ex) {
+			throw new SystemException(
+				"Unable to index journal article " +
+					journalArticle.getArticleId(),
+				ex);
 		}
 	}
 
@@ -224,6 +218,17 @@ public class JournalArticleModelDocumentContributor
 			ddmStructure, ddmFormValues, LocaleUtil.fromLanguageId(languageId));
 	}
 
+	protected Localization getLocalization() {
+
+		// See LPS-72507
+
+		if (_localization != null) {
+			return _localization;
+		}
+
+		return LocalizationUtil.getLocalization();
+	}
+
 	protected boolean isIndexAllArticleVersions() {
 		JournalServiceConfiguration journalServiceConfiguration = null;
 
@@ -273,7 +278,7 @@ public class JournalArticleModelDocumentContributor
 		_journalConverter = journalConverter;
 	}
 
-	private static final String _CLASS_NAME = JournalArticle.class.getName();
+	protected static final String CLASS_NAME = JournalArticle.class.getName();
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		JournalArticleModelDocumentContributor.class);
@@ -283,6 +288,7 @@ public class JournalArticleModelDocumentContributor
 	private DDMStructureLocalService _ddmStructureLocalService;
 	private FieldsToDDMFormValuesConverter _fieldsToDDMFormValuesConverter;
 	private JournalConverter _journalConverter;
+	private Localization _localization;
 
 	@Reference
 	private Portal _portal;
